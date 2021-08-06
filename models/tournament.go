@@ -1,10 +1,14 @@
 package models
 
+import (
+	"github.com/google/uuid"
+)
+
 type Tournament struct {
-	ID      string
+	ID      uuid.UUID `"sql:", type:uuid"`
 	Name    string
 	Deposit float64
 	Prize   float64
-	Users   []Users
+	Users   []User
 	Winner  string
 }

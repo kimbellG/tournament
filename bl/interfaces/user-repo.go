@@ -60,3 +60,39 @@ func (u *UserRepository) GetById(id uuid.UUID) (*models.User, error) {
 
 	return user, nil
 }
+
+func (u *UserRepository) DeleteById(id uuid.UUID) error {
+	const query = `
+		DELETE FROM Users WHERE id = $1;	
+	`
+
+	deleteStmt, err := u.db.Prepare(query)
+	if err != nil {
+		return kerror.New(fmt.Errorf("prepare for deleting user: %v", err), kerror.IntervalServerError)
+	}
+
+	if _, err := deleteStmt.Exec(id); err != nil {
+		return kerror.New(fmt.Errorf("exec deleting user: %v", err), kerror.IntervalServerError)
+	}
+
+	return nil
+}
+
+func (u *UserRepository) SumToBalance(id uuid.UUID, addend float64) error {
+	const query = `
+		UPDATE Users
+		SET balance = balance + $1
+		WHERE id = $2
+	`
+
+	updateStmt, err := u.db.Prepare(query)
+	if err != nil {
+		return kerror.New(fmt.Errorf("prepare for update balance for %v(addend: %v): %v", id, addend, err), kerror.IntervalServerError)
+	}
+
+	if _, err := updateStmt.Exec(addend, id); err != nil {
+		return kerror.New(fmt.Errorf("updating balance for %v(addend: %v): %v", id, addend, err), kerror.IntervalServerError)
+	}
+
+	return nil
+}

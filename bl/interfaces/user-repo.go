@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kimbellG/kerror"
+	"github.com/kimbellG/tournament-bl/debugutil"
 	"github.com/kimbellG/tournament-bl/models"
 )
 
@@ -31,6 +32,7 @@ func (u *UserRepository) Save(user *models.User) (uuid.UUID, error) {
 	if err != nil {
 		return id, kerror.New(fmt.Errorf("prepare: %v", err), kerror.IntervalServerError)
 	}
+	defer debugutil.Close(inStmt)
 
 	if err := inStmt.QueryRow(user.Name, user.Balance).Scan(&id); err != nil {
 		return id, kerror.New(fmt.Errorf("scan: %v", err), kerror.BadRequest)
@@ -49,6 +51,7 @@ func (u *UserRepository) GetById(id uuid.UUID) (*models.User, error) {
 	if err != nil {
 		return nil, kerror.New(fmt.Errorf("prepare stmt: %v", err), kerror.IntervalServerError)
 	}
+	defer debugutil.Close(selectStmt)
 
 	if err := selectStmt.QueryRow(id).Scan(&user.ID, &user.Name, &user.Balance); err != nil {
 		if err == sql.ErrNoRows {
@@ -70,6 +73,7 @@ func (u *UserRepository) DeleteById(id uuid.UUID) error {
 	if err != nil {
 		return kerror.New(fmt.Errorf("prepare for deleting user: %v", err), kerror.IntervalServerError)
 	}
+	defer debugutil.Close(deleteStmt)
 
 	if _, err := deleteStmt.Exec(id); err != nil {
 		return kerror.New(fmt.Errorf("exec deleting user: %v", err), kerror.IntervalServerError)
@@ -89,6 +93,7 @@ func (u *UserRepository) SumToBalance(id uuid.UUID, addend float64) error {
 	if err != nil {
 		return kerror.New(fmt.Errorf("prepare for update balance for %v(addend: %v): %v", id, addend, err), kerror.IntervalServerError)
 	}
+	defer debugutil.Close(updateStmt)
 
 	if _, err := updateStmt.Exec(addend, id); err != nil {
 		return kerror.New(fmt.Errorf("updating balance for %v(addend: %v): %v", id, addend, err), kerror.IntervalServerError)

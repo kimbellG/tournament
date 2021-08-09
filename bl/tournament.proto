@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+import  "google/protobuf/empty.proto";
+
+package interfaces;
+
+option go_package = "/interfaces";
+
+service TournamentService {
+    rpc SaveUser(User) returns (SaveResponse) {}
+    rpc GetUserById(UserRequest) returns (User) {}
+    rpc DeleteUserByID(UserRequest) returns (google.protobuf.Empty) {}
+    rpc SumToBalance(RequestToUpdateBalance) returns (google.protobuf.Empty) {}
+}
+
+message User {
+    string ID = 1;
+    string Name = 2;
+    double Balance = 3;
+}
+
+message SaveResponse {
+    string id = 1;
+}
+
+message UserRequest {
+    string ID = 1;
+}
+
+message RequestToUpdateBalance {
+    string ID = 1;
+    double addend = 2;
+}

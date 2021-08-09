@@ -9,8 +9,15 @@ import (
 	"github.com/kimbellG/tournament-bl/models"
 )
 
+type DB interface {
+	Prepare(query string) (*sql.Stmt, error)
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Query(query string) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
+
 type UserRepository struct {
-	db *sql.DB
+	db DB
 }
 
 func (u *UserRepository) Save(user *models.User) (uuid.UUID, error) {
@@ -19,9 +26,15 @@ func (u *UserRepository) Save(user *models.User) (uuid.UUID, error) {
 			RETURNING id;
 	`
 	var id uuid.UUID
-	retID := u.db.QueryRow(query, user.Name, user.Balance)
-	if err := retID.Scan(id); err != nil {
-		return id, kerror.New(fmt.Errorf("scan: %v", err), kerror.InvalidID)
+
+	inStmt, err := u.db.Prepare(query)
+	if err != nil {
+		// TODO: Upgrade kerror and set status: IntervalServerError
+		return id, kerror.New(fmt.Errorf("prepare: %v", err), kerror.BadRequest)
+	}
+
+	if err := inStmt.QueryRow(user.Name, user.Balance).Scan(id); err != nil {
+		return id, kerror.New(fmt.Errorf("scan: %v", err), kerror.BadRequest)
 	}
 
 	return id, nil

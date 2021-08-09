@@ -21,6 +21,12 @@ type UserRepository struct {
 	db DB
 }
 
+func NewUserRepository(db DB) *UserRepository {
+	return &UserRepository{
+		db: db,
+	}
+}
+
 func (u *UserRepository) Save(user *models.User) (uuid.UUID, error) {
 	const query = `
 		INSERT INTO Users(name, balance) VALUES ($1, $2)

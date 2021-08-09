@@ -4,7 +4,7 @@ import  "google/protobuf/empty.proto";
 
 package interfaces;
 
-option go_package = "/interfaces";
+option go_package = "/interfaces/grpc";
 
 service TournamentService {
     rpc SaveUser(User) returns (SaveResponse) {}

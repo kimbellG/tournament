@@ -29,13 +29,34 @@ func (u *UserRepository) Save(user *models.User) (uuid.UUID, error) {
 
 	inStmt, err := u.db.Prepare(query)
 	if err != nil {
-		// TODO: Upgrade kerror and set status: IntervalServerError
-		return id, kerror.New(fmt.Errorf("prepare: %v", err), kerror.BadRequest)
+		return id, kerror.New(fmt.Errorf("prepare: %v", err), kerror.IntervalServerError)
 	}
 
-	if err := inStmt.QueryRow(user.Name, user.Balance).Scan(id); err != nil {
+	if err := inStmt.QueryRow(user.Name, user.Balance).Scan(&id); err != nil {
 		return id, kerror.New(fmt.Errorf("scan: %v", err), kerror.BadRequest)
 	}
 
 	return id, nil
+}
+
+func (u *UserRepository) GetById(id uuid.UUID) (*models.User, error) {
+	const query = `
+		SELECT * FROM Users WHERE id = $1;	
+	`
+	user := &models.User{}
+
+	selectStmt, err := u.db.Prepare(query)
+	if err != nil {
+		return nil, kerror.New(fmt.Errorf("prepare stmt: %v", err), kerror.IntervalServerError)
+	}
+
+	if err := selectStmt.QueryRow(id).Scan(&user.ID, &user.Name, &user.Balance); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, kerror.New(kerror.Errorf(err, "no user with id $v", id), kerror.InvalidID)
+		}
+
+		return nil, kerror.New(kerror.Errorf(err, "query"), kerror.BadRequest)
+	}
+
+	return user, nil
 }

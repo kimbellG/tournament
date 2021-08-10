@@ -20,7 +20,7 @@ func (ui *UserInteractor) Save(user *models.User) (uuid.UUID, error) {
 }
 
 func (ui *UserInteractor) GetByID(id uuid.UUID) (*models.User, error) {
-	user, err := ui.UserRepo.GetById(id)
+	user, err := ui.UserRepo.GetByID(id)
 	if err != nil {
 		return nil, kerror.Errorf(err, "repository")
 	}
@@ -29,7 +29,7 @@ func (ui *UserInteractor) GetByID(id uuid.UUID) (*models.User, error) {
 }
 
 func (ui *UserInteractor) DeleteByID(id uuid.UUID) error {
-	if err := ui.UserRepo.DeleteById(id); err != nil {
+	if err := ui.UserRepo.DeleteByID(id); err != nil {
 		return kerror.Errorf(err, "repository")
 	}
 

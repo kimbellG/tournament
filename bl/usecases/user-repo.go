@@ -7,7 +7,7 @@ import (
 
 type UserRepository interface {
 	Save(user *models.User) (uuid.UUID, error)
-	GetById(id uuid.UUID) (*models.User, error)
-	DeleteById(id uuid.UUID) error
+	GetByID(id uuid.UUID) (*models.User, error)
+	DeleteByID(id uuid.UUID) error
 	SumToBalance(id uuid.UUID, addend float64) error
 }

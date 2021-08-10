@@ -46,7 +46,7 @@ func (u *UserRepository) Save(user *models.User) (uuid.UUID, error) {
 	return id, nil
 }
 
-func (u *UserRepository) GetById(id uuid.UUID) (*models.User, error) {
+func (u *UserRepository) GetByID(id uuid.UUID) (*models.User, error) {
 	const query = `
 		SELECT * FROM Users WHERE id = $1;	
 	`
@@ -69,7 +69,7 @@ func (u *UserRepository) GetById(id uuid.UUID) (*models.User, error) {
 	return user, nil
 }
 
-func (u *UserRepository) DeleteById(id uuid.UUID) error {
+func (u *UserRepository) DeleteByID(id uuid.UUID) error {
 	const query = `
 		DELETE FROM Users WHERE id = $1;	
 	`

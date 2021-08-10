@@ -1,12 +1,11 @@
 package debugutil
 
-import "log"
+import (
+	"io"
+	"log"
+)
 
-type Closer interface {
-	Close() error
-}
-
-func Close(c Closer) {
+func Close(c io.Closer) {
 	if err := c.Close(); err != nil {
 		log.Printf("Closing: %v", err)
 	}

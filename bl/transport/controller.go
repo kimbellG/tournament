@@ -1,12 +1,12 @@
-package interfaces
+package transport
 
 import (
 	"context"
 
 	"github.com/google/uuid"
 	"github.com/kimbellG/kerror"
-	ttgrpc "github.com/kimbellG/tournament-bl/interfaces/grpc"
 	"github.com/kimbellG/tournament-bl/models"
+	ttgrpc "github.com/kimbellG/tournament-bl/transport/grpc"
 	"github.com/kimbellG/tournament-bl/usecases"
 )
 
@@ -15,7 +15,7 @@ type ServiceController struct {
 }
 
 func (sc *ServiceController) SaveUser(ctx context.Context, user *ttgrpc.User) (*ttgrpc.SaveResponse, error) {
-	mUser, err := userGrpcToModels(user)
+	mUser, err := userFromProto(user)
 	if err != nil {
 		return nil, kerror.Errorf(err, "marshaling user struct to models")
 	}
@@ -30,7 +30,7 @@ func (sc *ServiceController) SaveUser(ctx context.Context, user *ttgrpc.User) (*
 	}, nil
 }
 
-func userGrpcToModels(gUser *ttgrpc.User) (*models.User, error) {
+func userFromProto(gUser *ttgrpc.User) (*models.User, error) {
 	mUser := &models.User{
 		Name:    gUser.GetName(),
 		Balance: gUser.GetBalance(),

@@ -1,0 +1,3 @@
+protobuf:
+    For adding protobuf files input:
+        protoc --go_out=. --go-grpc_out=. <filename>

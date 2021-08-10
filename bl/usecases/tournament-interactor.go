@@ -74,11 +74,10 @@ func (tu *TournamentInteractor) isActiveTournament(tournamentID uuid.UUID) (bool
 		return false, kerror.Errorf(err, "get status of tournament")
 	}
 
-	// TODO: add active status after merge with interfaces
-	return status == "", nil
+	return status == models.Active, nil
 }
 
-func (tu *TournamentInteractor) getStatus(tournamentID uuid.UUID) (string, error) {
+func (tu *TournamentInteractor) getStatus(tournamentID uuid.UUID) (models.TournamentStatus, error) {
 	tournament, err := tu.GetByID(tournamentID)
 	if err != nil {
 		return "", kerror.Errorf(err, "get tournament")
@@ -111,7 +110,9 @@ func (tu *TournamentInteractor) Finish(id uuid.UUID) error {
 		return kerror.Errorf(err, "add prize to winner's balance")
 	}
 
-	//TODO: change status of tourament
+	if err := tu.repo.ChangeStatus(id, models.Finish); err != nil {
+		return kerror.Errorf(err, "change status")
+	}
 
 	return nil
 }
@@ -148,7 +149,9 @@ func (tu *TournamentInteractor) Cancel(id uuid.UUID) error {
 		return kerror.Errorf(err, "add deposit to user balance")
 	}
 
-	//TODO: change status of tournament
+	if err := tu.repo.ChangeStatus(id, models.Cancel); err != nil {
+		return kerror.Errorf(err, "change status")
+	}
 
 	return nil
 }

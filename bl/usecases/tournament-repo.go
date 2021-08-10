@@ -16,7 +16,5 @@ type TournamentRepository interface {
 	AddDepositToUsersOfTournament(tournamentID uuid.UUID) error
 	AddWinner(tournamentID, userID uuid.UUID) error
 
-	// TODO: added this func after merge interfaces
-	//	ChangeStatus(tournamentID uuid.UUID, newStatus )
-
+	ChangeStatus(tournamentID uuid.UUID, newStatus models.TournamentStatus) error
 }

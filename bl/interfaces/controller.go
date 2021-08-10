@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/kimbellG/kerror"
@@ -39,7 +38,7 @@ func userGrpcToModels(gUser *ttgrpc.User) (*models.User, error) {
 
 	id, err := uuid.Parse(gUser.GetID())
 	if err != nil {
-		return nil, kerror.New(fmt.Errorf("parse id: %v", err), kerror.InvalidID)
+		return nil, kerror.Newf(kerror.InvalidID, "parser id: %v", err)
 	}
 
 	mUser.ID = id

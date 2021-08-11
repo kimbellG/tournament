@@ -50,6 +50,8 @@ github.com/kimbellG/kerror v0.0.0-20210810083856-81ce1e05d388 h1:gBqoeCJmgiobq80
 github.com/kimbellG/kerror v0.0.0-20210810083856-81ce1e05d388/go.mod h1:R51HKUYGkIpICaAhou9uT4ZNSSUtLOH622Zv4ooXeS0=
 github.com/kimbellG/kerror v0.0.0-20210811114258-53c02f83c4cf h1:/ltXiTuCNsO7pBSEigqLqZu1UL9s/1wrimX5aKprVLU=
 github.com/kimbellG/kerror v0.0.0-20210811114258-53c02f83c4cf/go.mod h1:R51HKUYGkIpICaAhou9uT4ZNSSUtLOH622Zv4ooXeS0=
+github.com/kimbellG/kerror v0.0.0-20210811121944-ca92b72958fc h1:QqBo+ZLFtX0vl0UJBs0GqO35Qd5LrTzH4pdqS8KiwlA=
+github.com/kimbellG/kerror v0.0.0-20210811121944-ca92b72958fc/go.mod h1:R51HKUYGkIpICaAhou9uT4ZNSSUtLOH622Zv4ooXeS0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=

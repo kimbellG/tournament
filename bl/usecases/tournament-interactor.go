@@ -8,9 +8,9 @@ import (
 )
 
 type TournamentInteractor struct {
-	repo      TournamentRepository
-	store     tx.Transactioner
-	userCases UserUsecase
+	repo     TournamentRepository
+	store    tx.Transactioner
+	userRepo UserRepository
 }
 
 func (tu *TournamentInteractor) Create(tournament *models.Tournament) (uuid.UUID, error) {
@@ -70,8 +70,7 @@ func (tu *TournamentInteractor) Join(tournamentID uuid.UUID, userID uuid.UUID) e
 			return kerror.Errorf(err, "getting deposit")
 		}
 
-		// TODO: use repository function with transaction
-		if err := tu.userCases.SumToBalance(userID, -deposit); err != nil {
+		if err := tu.userRepo.UpdateBalanceBySum(store, userID, -deposit); err != nil {
 			return kerror.Errorf(err, "subtraction from the balance")
 		}
 
@@ -141,8 +140,7 @@ func (tu *TournamentInteractor) Finish(id uuid.UUID) error {
 			return kerror.Errorf(err, "generate winner")
 		}
 
-		// TODO: use repository function with transaction
-		if err := tu.userCases.SumToBalance(winner.ID, prize); err != nil {
+		if err := tu.userRepo.UpdateBalanceBySum(store, winner.ID, prize); err != nil {
 			return kerror.Errorf(err, "add prize to winner's balance")
 		}
 

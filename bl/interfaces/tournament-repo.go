@@ -12,7 +12,7 @@ import (
 
 type TournamentRepository struct{}
 
-func (tr *TournamentRepository) Create(repo tx.DBTX, tournament *models.Tournament) (uuid.UUID, error) {
+func (tr *TournamentRepository) Insert(repo tx.DBTX, tournament *models.Tournament) (uuid.UUID, error) {
 	const query = `
 		INSERT INTO Tournaments(name, deposit) VALUES ($1, $2)
 			RETURNING id;
@@ -32,7 +32,7 @@ func (tr *TournamentRepository) Create(repo tx.DBTX, tournament *models.Tourname
 	return id, nil
 }
 
-func (tr *TournamentRepository) GetByID(repo tx.DBTX, id uuid.UUID) (*models.Tournament, error) {
+func (tr *TournamentRepository) SelectByID(repo tx.DBTX, id uuid.UUID) (*models.Tournament, error) {
 	const query = `
 		SELECT * FROM Tournaments WHERE id = $1
 	`
@@ -52,7 +52,7 @@ func (tr *TournamentRepository) GetByID(repo tx.DBTX, id uuid.UUID) (*models.Tou
 		return nil, kerror.Newf(kerror.IntervalServerError, "scan query: %v", err)
 	}
 
-	users, err := tr.getUserIDsOfTournament(repo, id)
+	users, err := tr.selectUserIDsOfTournament(repo, id)
 	if err != nil {
 		return nil, kerror.Errorf(err, "get users of tournament")
 	}
@@ -62,7 +62,7 @@ func (tr *TournamentRepository) GetByID(repo tx.DBTX, id uuid.UUID) (*models.Tou
 
 }
 
-func (tr *TournamentRepository) getUserIDsOfTournament(repo tx.DBTX, tournamentID uuid.UUID) ([]models.User, error) {
+func (tr *TournamentRepository) selectUserIDsOfTournament(repo tx.DBTX, tournamentID uuid.UUID) ([]models.User, error) {
 	const query = `
 		SELECT * FROM UsersOfTournaments WHERE tournamentID = $1;
 	`
@@ -93,7 +93,7 @@ func (tr *TournamentRepository) getUserIDsOfTournament(repo tx.DBTX, tournamentI
 	return users, nil
 }
 
-func (tr *TournamentRepository) GetRandomUserOfTournament(repo tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
+func (tr *TournamentRepository) SelectRandomUserOfTournament(repo tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
 	const query = `
 		WITH random_id AS (
 			SELECT user FROM UsersOfTournaments WHERE tournament = $1
@@ -116,7 +116,7 @@ func (tr *TournamentRepository) GetRandomUserOfTournament(repo tx.DBTX, tourname
 	return &user, nil
 }
 
-func (tr *TournamentRepository) AddUserToTournament(repo tx.DBTX, tournamentID, userID uuid.UUID) error {
+func (tr *TournamentRepository) InsertUserToTournament(repo tx.DBTX, tournamentID, userID uuid.UUID) error {
 	const query = `
 		INSERT INTO UsersOfTournaments(tournament, user) VALUES ($1, $2); 
 	`
@@ -154,7 +154,7 @@ func (tr *TournamentRepository) AddToPrize(repo tx.DBTX, ID uuid.UUID, addend fl
 	return nil
 }
 
-func (tr *TournamentRepository) AddDepositToUsersOfTournament(repo tx.DBTX, tournamentID uuid.UUID) error {
+func (tr *TournamentRepository) RefundDepositToUsers(repo tx.DBTX, tournamentID uuid.UUID) error {
 	const query = `
 		WITH depositOfTournament AS (
 			SELECT deposit FROM Tournament WHERE id = $1
@@ -177,7 +177,7 @@ func (tr *TournamentRepository) AddDepositToUsersOfTournament(repo tx.DBTX, tour
 	return nil
 }
 
-func (tr *TournamentRepository) AddWinner(repo tx.DBTX, tournamentID, winnerID uuid.UUID) error {
+func (tr *TournamentRepository) SetWinner(repo tx.DBTX, tournamentID, winnerID uuid.UUID) error {
 	const query = `
 		UPDATE Tournament SET winner = $1 WHERE id = $2;
 	`
@@ -195,7 +195,7 @@ func (tr *TournamentRepository) AddWinner(repo tx.DBTX, tournamentID, winnerID u
 	return nil
 }
 
-func (tr *TournamentRepository) ChangeStatus(repo tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error {
+func (tr *TournamentRepository) UpdateStatus(repo tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error {
 	const query = `
 		UPDATE Tournament SET status = $1 WHERE id = $2;
 	`

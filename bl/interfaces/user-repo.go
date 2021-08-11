@@ -12,7 +12,7 @@ import (
 
 type UserRepository struct{}
 
-func (u *UserRepository) Save(store tx.DBTX, user *models.User) (uuid.UUID, error) {
+func (u *UserRepository) Insert(store tx.DBTX, user *models.User) (uuid.UUID, error) {
 	const query = `
 		INSERT INTO Users(name, balance) VALUES ($1, $2)
 			RETURNING id;
@@ -32,7 +32,7 @@ func (u *UserRepository) Save(store tx.DBTX, user *models.User) (uuid.UUID, erro
 	return id, nil
 }
 
-func (u *UserRepository) GetByID(store tx.DBTX, id uuid.UUID) (*models.User, error) {
+func (u *UserRepository) SelectByID(store tx.DBTX, id uuid.UUID) (*models.User, error) {
 	const query = `
 		SELECT * FROM Users WHERE id = $1;	
 	`
@@ -73,7 +73,7 @@ func (u *UserRepository) DeleteByID(store tx.DBTX, id uuid.UUID) error {
 	return nil
 }
 
-func (u *UserRepository) SumToBalance(store tx.DBTX, id uuid.UUID, addend float64) error {
+func (u *UserRepository) UpdateBalanceBySum(store tx.DBTX, id uuid.UUID, d float64) error {
 	const query = `
 		UPDATE Users
 		SET balance = balance + $1
@@ -82,12 +82,12 @@ func (u *UserRepository) SumToBalance(store tx.DBTX, id uuid.UUID, addend float6
 
 	updateStmt, err := store.Prepare(query)
 	if err != nil {
-		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare for update balance for %v(addend: %v): %v", id, addend, err)
+		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare for update balance for %v(addend: %v): %v", id, d, err)
 	}
 	defer debugutil.Close(updateStmt)
 
-	if _, err := updateStmt.Exec(addend, id); err != nil {
-		return kerror.Newf(kerror.SQLExecutionError, "updating balance for %v(addend: %v): %v", id, addend, err)
+	if _, err := updateStmt.Exec(d, id); err != nil {
+		return kerror.Newf(kerror.SQLExecutionError, "updating balance for %v(addend: %v): %v", id, d, err)
 	}
 
 	return nil

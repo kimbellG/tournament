@@ -7,15 +7,15 @@ import (
 )
 
 type TournamentRepository interface {
-	Create(repo tx.DBTX, tournament *models.Tournament) (uuid.UUID, error)
+	Insert(repo tx.DBTX, tournament *models.Tournament) (uuid.UUID, error)
+	InsertUserToTournament(repo tx.DBTX, tournamentID, userID uuid.UUID) error
 
-	GetByID(repo tx.DBTX, id uuid.UUID) (*models.Tournament, error)
-	GetRandomUserOfTournament(repo tx.DBTX, tournamentID uuid.UUID) (*models.User, error)
+	SelectByID(repo tx.DBTX, id uuid.UUID) (*models.Tournament, error)
+	SelectRandomUserOfTournament(repo tx.DBTX, tournamentID uuid.UUID) (*models.User, error)
 
-	AddUserToTournament(repo tx.DBTX, tournamentID, userID uuid.UUID) error
-	AddToPrize(repo tx.DBTX, ID uuid.UUID, addend float64) error
-	AddDepositToUsersOfTournament(repo tx.DBTX, tournamentID uuid.UUID) error
-	AddWinner(repo tx.DBTX, tournamentID, userID uuid.UUID) error
+	AddToPrize(repo tx.DBTX, ID uuid.UUID, end float64) error
+	RefundDepositToUsers(repo tx.DBTX, tournamentID uuid.UUID) error
+	SetWinner(repo tx.DBTX, tournamentID, userID uuid.UUID) error
 
-	ChangeStatus(repo tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error
+	UpdateStatus(repo tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error
 }

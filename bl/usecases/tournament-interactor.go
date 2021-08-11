@@ -12,7 +12,7 @@ type TournamentInteractor struct {
 }
 
 func (tu *TournamentInteractor) Create(tournament *models.Tournament) (uuid.UUID, error) {
-	id, err := tu.repo.Create(tournament)
+	id, err := tu.repo.Insert(tournament)
 	if err != nil {
 		return id, kerror.Errorf(err, "repo")
 	}
@@ -21,7 +21,7 @@ func (tu *TournamentInteractor) Create(tournament *models.Tournament) (uuid.UUID
 }
 
 func (tu *TournamentInteractor) GetByID(id uuid.UUID) (*models.Tournament, error) {
-	tournament, err := tu.repo.GetByID(id)
+	tournament, err := tu.repo.SelectByID(id)
 	if err != nil {
 		return nil, kerror.Errorf(err, "repo")
 	}
@@ -52,7 +52,7 @@ func (tu *TournamentInteractor) Join(tournamentID uuid.UUID, userID uuid.UUID) e
 		return kerror.Errorf(err, "adding to prize of tournament")
 	}
 
-	if err := tu.repo.AddUserToTournament(tournamentID, userID); err != nil {
+	if err := tu.repo.InsertUserToTournament(tournamentID, userID); err != nil {
 		return kerror.Errorf(err, "adding user to tournament")
 	}
 
@@ -60,7 +60,7 @@ func (tu *TournamentInteractor) Join(tournamentID uuid.UUID, userID uuid.UUID) e
 }
 
 func (tu *TournamentInteractor) getDeposit(tournamentID uuid.UUID) (float64, error) {
-	tournament, err := tu.GetByID(tournamentID)
+	tournament, err := tu.repo.SelectByID(tournamentID)
 	if err != nil {
 		return -1, kerror.Errorf(err, "get tournament")
 	}
@@ -78,7 +78,7 @@ func (tu *TournamentInteractor) isActiveTournament(tournamentID uuid.UUID) (bool
 }
 
 func (tu *TournamentInteractor) getStatus(tournamentID uuid.UUID) (models.TournamentStatus, error) {
-	tournament, err := tu.GetByID(tournamentID)
+	tournament, err := tu.repo.SelectByID(tournamentID)
 	if err != nil {
 		return "", kerror.Errorf(err, "get tournament")
 	}
@@ -110,7 +110,7 @@ func (tu *TournamentInteractor) Finish(id uuid.UUID) error {
 		return kerror.Errorf(err, "add prize to winner's balance")
 	}
 
-	if err := tu.repo.ChangeStatus(id, models.Finish); err != nil {
+	if err := tu.repo.UpdateStatus(id, models.Finish); err != nil {
 		return kerror.Errorf(err, "change status")
 	}
 
@@ -118,7 +118,7 @@ func (tu *TournamentInteractor) Finish(id uuid.UUID) error {
 }
 
 func (tu *TournamentInteractor) generateWinner(tournamentID uuid.UUID) (*models.User, error) {
-	winner, err := tu.repo.GetRandomUserOfTournament(tournamentID)
+	winner, err := tu.repo.SelectRandomUserOfTournament(tournamentID)
 	if err != nil {
 		return nil, kerror.Errorf(err, "get random user")
 	}
@@ -127,7 +127,7 @@ func (tu *TournamentInteractor) generateWinner(tournamentID uuid.UUID) (*models.
 }
 
 func (tu *TournamentInteractor) getPrize(tournamentID uuid.UUID) (float64, error) {
-	tournament, err := tu.repo.GetByID(tournamentID)
+	tournament, err := tu.repo.SelectByID(tournamentID)
 	if err != nil {
 		return -1, kerror.Errorf(err, "get tournament")
 	}
@@ -145,11 +145,11 @@ func (tu *TournamentInteractor) Cancel(id uuid.UUID) error {
 		return kerror.Newf(kerror.BadRequest, "tournament isn't active")
 	}
 
-	if err := tu.repo.AddDepositToUsersOfTournament(id); err != nil {
+	if err := tu.repo.RefundDepositToUsers(id); err != nil {
 		return kerror.Errorf(err, "add deposit to user balance")
 	}
 
-	if err := tu.repo.ChangeStatus(id, models.Cancel); err != nil {
+	if err := tu.repo.UpdateStatus(id, models.Cancel); err != nil {
 		return kerror.Errorf(err, "change status")
 	}
 

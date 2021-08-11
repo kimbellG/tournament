@@ -21,12 +21,12 @@ func (tr *TournamentRepository) Insert(repo tx.DBTX, tournament *models.Tourname
 
 	stmt, err := repo.Prepare(query)
 	if err != nil {
-		return id, kerror.Newf(kerror.IntervalServerError, "prepare stmt %v: %v", query, err)
+		return id, kerror.Newf(kerror.SQLPrepareStatementError, "prepare statement %v: %w", query, err)
 	}
 	defer debugutil.Close(stmt)
 
 	if err := stmt.QueryRow(tournament.Name, tournament.Deposit).Scan(&id); err != nil {
-		return id, kerror.Newf(kerror.BadRequest, "insert tournament: %v", err)
+		return id, kerror.Newf(kerror.SQLConstraintError, "insert tournament: %w", err)
 	}
 
 	return id, nil
@@ -40,16 +40,16 @@ func (tr *TournamentRepository) SelectByID(repo tx.DBTX, id uuid.UUID) (*models.
 
 	stmt, err := repo.Prepare(query)
 	if err != nil {
-		return nil, kerror.Newf(kerror.IntervalServerError, "prepare stmt %v: %v", query, err)
+		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt %v: %v", query, err)
 	}
 	defer debugutil.Close(stmt)
 
 	if err := stmt.QueryRow(id).Scan(&tournament.ID, &tournament.Name, &tournament.Deposit, &tournament.Prize, &tournament.Winner, &tournament.Status); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, kerror.Newf(kerror.InvalidID, "tournament with id(%v) isn't exists: %v", id, err)
+			return nil, kerror.Newf(kerror.TournamentDoesntExists, "tournament with id(%v) isn't exists: %v", id, err)
 		}
 
-		return nil, kerror.Newf(kerror.IntervalServerError, "scan query: %v", err)
+		return nil, kerror.Newf(kerror.SQLScanError, "scan query: %v", err)
 	}
 
 	users, err := tr.selectUserIDsOfTournament(repo, id)
@@ -70,13 +70,13 @@ func (tr *TournamentRepository) selectUserIDsOfTournament(repo tx.DBTX, tourname
 
 	stmt, err := repo.Prepare(query)
 	if err != nil {
-		return nil, kerror.Newf(kerror.IntervalServerError, "prepare query: %v", err)
+		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare query: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
 	rows, err := stmt.Query(tournamentID)
 	if err != nil {
-		return nil, kerror.Newf(kerror.BadRequest, "query request: %v", err)
+		return nil, kerror.Newf(kerror.SQLConstraintError, "query request: %v", err)
 	}
 	defer debugutil.Close(rows)
 
@@ -84,7 +84,7 @@ func (tr *TournamentRepository) selectUserIDsOfTournament(repo tx.DBTX, tourname
 		var user models.User
 
 		if err := rows.Scan(&user.ID, &user.Name, &user.Balance); err != nil {
-			return nil, kerror.Newf(kerror.IntervalServerError, "scan user ids of tournament(%v): %v", tournamentID, err)
+			return nil, kerror.Newf(kerror.SQLScanError, "scan user ids of tournament(%v): %v", tournamentID, err)
 		}
 
 		users = append(users, user)
@@ -105,12 +105,12 @@ func (tr *TournamentRepository) SelectRandomUserOfTournament(repo tx.DBTX, tourn
 
 	stmt, err := repo.Prepare(query)
 	if err != nil {
-		return nil, kerror.Newf(kerror.IntervalServerError, "prepare stmt: %v", err)
+		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
 	if err := stmt.QueryRow(tournamentID).Scan(&user.ID, &user.Name, &user.Balance); err != nil {
-		return nil, kerror.Newf(kerror.IntervalServerError, "scan user from db: %v", err)
+		return nil, kerror.Newf(kerror.SQLScanError, "scan user from db: %v", err)
 	}
 
 	return &user, nil
@@ -123,12 +123,12 @@ func (tr *TournamentRepository) InsertUserToTournament(repo tx.DBTX, tournamentI
 
 	stmt, err := repo.Prepare(query)
 	if err != nil {
-		return kerror.Newf(kerror.IntervalServerError, "prepare query: %v", err)
+		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare query: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
 	if _, err := stmt.Exec(tournamentID, userID); err != nil {
-		return kerror.Newf(kerror.IntervalServerError, "exec stmt: %v", err)
+		return kerror.Newf(kerror.SQLExecutionError, "exec stmt: %v", err)
 	}
 
 	return nil
@@ -143,12 +143,12 @@ func (tr *TournamentRepository) AddToPrize(repo tx.DBTX, ID uuid.UUID, addend fl
 
 	stmt, err := repo.Prepare(query)
 	if err != nil {
-		return kerror.Newf(kerror.IntervalServerError, "prepare stmt: %v", err)
+		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
 	if _, err := stmt.Exec(addend, ID); err != nil {
-		return kerror.Newf(kerror.IntervalServerError, "exec query: %v", err)
+		return kerror.Newf(kerror.SQLExecutionError, "exec query: %v", err)
 	}
 
 	return nil
@@ -166,12 +166,12 @@ func (tr *TournamentRepository) RefundDepositToUsers(repo tx.DBTX, tournamentID 
 
 	stmt, err := repo.Prepare(query)
 	if err != nil {
-		return kerror.Newf(kerror.IntervalServerError, "prepare stmt: %v", err)
+		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
 	if _, err := stmt.Exec(tournamentID); err != nil {
-		return kerror.Newf(kerror.IntervalServerError, "exec query: %v", err)
+		return kerror.Newf(kerror.SQLExecutionError, "exec query: %v", err)
 	}
 
 	return nil
@@ -184,12 +184,12 @@ func (tr *TournamentRepository) SetWinner(repo tx.DBTX, tournamentID, winnerID u
 
 	stmt, err := repo.Prepare(query)
 	if err != nil {
-		return kerror.Newf(kerror.IntervalServerError, "prepare stmt: %v", err)
+		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
 	if _, err := stmt.Exec(winnerID, tournamentID); err != nil {
-		return kerror.Newf(kerror.IntervalServerError, "exec update query: %v", err)
+		return kerror.Newf(kerror.SQLExecutionError, "exec update query: %v", err)
 	}
 
 	return nil
@@ -202,12 +202,12 @@ func (tr *TournamentRepository) UpdateStatus(repo tx.DBTX, tournamentID uuid.UUI
 
 	stmt, err := repo.Prepare(query)
 	if err != nil {
-		return kerror.Newf(kerror.IntervalServerError, "prepare stmt: %v", err)
+		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
 	if _, err := stmt.Exec(newStatus, tournamentID); err != nil {
-		return kerror.Newf(kerror.BadRequest, "exec update query: %v", err)
+		return kerror.Newf(kerror.SQLExecutionError, "exec update query: %v", err)
 	}
 
 	return nil

@@ -12,14 +12,14 @@ import (
 
 type TournamentRepository struct{}
 
-func (tr *TournamentRepository) Insert(repo tx.DBTX, tournament *models.Tournament) (uuid.UUID, error) {
+func (tr *TournamentRepository) Insert(store tx.DBTX, tournament *models.Tournament) (uuid.UUID, error) {
 	const query = `
 		INSERT INTO Tournaments(name, deposit) VALUES ($1, $2)
 			RETURNING id;
 	`
 	var id uuid.UUID
 
-	stmt, err := repo.Prepare(query)
+	stmt, err := store.Prepare(query)
 	if err != nil {
 		return id, kerror.Newf(kerror.SQLPrepareStatementError, "prepare statement %v: %w", query, err)
 	}
@@ -32,13 +32,13 @@ func (tr *TournamentRepository) Insert(repo tx.DBTX, tournament *models.Tourname
 	return id, nil
 }
 
-func (tr *TournamentRepository) SelectByID(repo tx.DBTX, id uuid.UUID) (*models.Tournament, error) {
+func (tr *TournamentRepository) SelectByID(store tx.DBTX, id uuid.UUID) (*models.Tournament, error) {
 	const query = `
 		SELECT * FROM Tournaments WHERE id = $1
 	`
 	tournament := &models.Tournament{}
 
-	stmt, err := repo.Prepare(query)
+	stmt, err := store.Prepare(query)
 	if err != nil {
 		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt %v: %v", query, err)
 	}
@@ -52,7 +52,7 @@ func (tr *TournamentRepository) SelectByID(repo tx.DBTX, id uuid.UUID) (*models.
 		return nil, kerror.Newf(kerror.SQLScanError, "scan query: %v", err)
 	}
 
-	users, err := tr.selectUserIDsOfTournament(repo, id)
+	users, err := tr.selectUserIDsOfTournament(store, id)
 	if err != nil {
 		return nil, kerror.Errorf(err, "get users of tournament")
 	}
@@ -62,13 +62,13 @@ func (tr *TournamentRepository) SelectByID(repo tx.DBTX, id uuid.UUID) (*models.
 
 }
 
-func (tr *TournamentRepository) selectUserIDsOfTournament(repo tx.DBTX, tournamentID uuid.UUID) ([]models.User, error) {
+func (tr *TournamentRepository) selectUserIDsOfTournament(store tx.DBTX, tournamentID uuid.UUID) ([]models.User, error) {
 	const query = `
 		SELECT * FROM UsersOfTournaments WHERE tournamentID = $1;
 	`
 	users := []models.User{}
 
-	stmt, err := repo.Prepare(query)
+	stmt, err := store.Prepare(query)
 	if err != nil {
 		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare query: %v", err)
 	}
@@ -93,7 +93,7 @@ func (tr *TournamentRepository) selectUserIDsOfTournament(repo tx.DBTX, tourname
 	return users, nil
 }
 
-func (tr *TournamentRepository) SelectRandomUserOfTournament(repo tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
+func (tr *TournamentRepository) SelectRandomUserOfTournament(store tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
 	const query = `
 		WITH random_id AS (
 			SELECT user FROM UsersOfTournaments WHERE tournament = $1
@@ -103,7 +103,7 @@ func (tr *TournamentRepository) SelectRandomUserOfTournament(repo tx.DBTX, tourn
 	`
 	var user models.User
 
-	stmt, err := repo.Prepare(query)
+	stmt, err := store.Prepare(query)
 	if err != nil {
 		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
@@ -116,12 +116,12 @@ func (tr *TournamentRepository) SelectRandomUserOfTournament(repo tx.DBTX, tourn
 	return &user, nil
 }
 
-func (tr *TournamentRepository) InsertUserToTournament(repo tx.DBTX, tournamentID, userID uuid.UUID) error {
+func (tr *TournamentRepository) InsertUserToTournament(store tx.DBTX, tournamentID, userID uuid.UUID) error {
 	const query = `
 		INSERT INTO UsersOfTournaments(tournament, user) VALUES ($1, $2); 
 	`
 
-	stmt, err := repo.Prepare(query)
+	stmt, err := store.Prepare(query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare query: %v", err)
 	}
@@ -134,14 +134,14 @@ func (tr *TournamentRepository) InsertUserToTournament(repo tx.DBTX, tournamentI
 	return nil
 }
 
-func (tr *TournamentRepository) AddToPrize(repo tx.DBTX, ID uuid.UUID, addend float64) error {
+func (tr *TournamentRepository) AddToPrize(store tx.DBTX, ID uuid.UUID, addend float64) error {
 	const query = `
 		UPDATE Tournaments
 			SET prize = prize + $1
 			WHERE id = $2
 	`
 
-	stmt, err := repo.Prepare(query)
+	stmt, err := store.Prepare(query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
@@ -154,7 +154,7 @@ func (tr *TournamentRepository) AddToPrize(repo tx.DBTX, ID uuid.UUID, addend fl
 	return nil
 }
 
-func (tr *TournamentRepository) RefundDepositToUsers(repo tx.DBTX, tournamentID uuid.UUID) error {
+func (tr *TournamentRepository) RefundDepositToUsers(store tx.DBTX, tournamentID uuid.UUID) error {
 	const query = `
 		WITH depositOfTournament AS (
 			SELECT deposit FROM Tournament WHERE id = $1
@@ -164,7 +164,7 @@ func (tr *TournamentRepository) RefundDepositToUsers(repo tx.DBTX, tournamentID 
 			WHERE id IN (SELECT id FROM UsersOfTournaments WHERE tournament = $1);
 	`
 
-	stmt, err := repo.Prepare(query)
+	stmt, err := store.Prepare(query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
@@ -177,12 +177,12 @@ func (tr *TournamentRepository) RefundDepositToUsers(repo tx.DBTX, tournamentID 
 	return nil
 }
 
-func (tr *TournamentRepository) SetWinner(repo tx.DBTX, tournamentID, winnerID uuid.UUID) error {
+func (tr *TournamentRepository) SetWinner(store tx.DBTX, tournamentID, winnerID uuid.UUID) error {
 	const query = `
 		UPDATE Tournament SET winner = $1 WHERE id = $2;
 	`
 
-	stmt, err := repo.Prepare(query)
+	stmt, err := store.Prepare(query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
@@ -195,12 +195,12 @@ func (tr *TournamentRepository) SetWinner(repo tx.DBTX, tournamentID, winnerID u
 	return nil
 }
 
-func (tr *TournamentRepository) UpdateStatus(repo tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error {
+func (tr *TournamentRepository) UpdateStatus(store tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error {
 	const query = `
 		UPDATE Tournament SET status = $1 WHERE id = $2;
 	`
 
-	stmt, err := repo.Prepare(query)
+	stmt, err := store.Prepare(query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/kimbellG/tournament-bl/controller"
 	ttgrpc "github.com/kimbellG/tournament-bl/handler/grpc"
 	"github.com/kimbellG/tournament-bl/models"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type ServiceController struct {
@@ -45,7 +46,7 @@ func userFromProto(gUser *ttgrpc.User) (*models.User, error) {
 	return mUser, nil
 }
 
-func (sc *ServiceController) GetUserById(r *ttgrpc.UserRequest) (*ttgrpc.User, error) {
+func (sc *ServiceController) GetUserById(ctx context.Context, r *ttgrpc.UserRequest) (*ttgrpc.User, error) {
 	id, err := userIDFromProto(r)
 	if err != nil {
 		return nil, kerror.Errorf(err, "marshaling id from request")
@@ -74,4 +75,30 @@ func userToProto(user *models.User) *ttgrpc.User {
 		Name:    user.Name,
 		Balance: user.Balance,
 	}
+}
+
+func (sc *ServiceController) DeleteUserByID(ctx context.Context, r *ttgrpc.UserRequest) (*emptypb.Empty, error) {
+	id, err := userIDFromProto(r)
+	if err != nil {
+		return &emptypb.Empty{}, kerror.Newf(kerror.InvalidID, "marshaling from user request: %w", err)
+	}
+
+	if err := sc.userController.DeleteByID(id); err != nil {
+		return &emptypb.Empty{}, kerror.Errorf(err, "delete user from controller")
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (sc *ServiceController) SumToBalance(ctx context.Context, r *ttgrpc.RequestToUpdateBalance) (*emptypb.Empty, error) {
+	id, err := uuid.Parse(r.GetID())
+	if err != nil {
+		return &emptypb.Empty{}, kerror.Newf(kerror.InvalidID, "parsing id from request: %w", err)
+	}
+
+	if err := sc.userController.SumToBalance(id, r.GetAddend()); err != nil {
+		return &emptypb.Empty{}, kerror.Errorf(err, "controller")
+	}
+
+	return &emptypb.Empty{}, nil
 }

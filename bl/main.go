@@ -14,23 +14,25 @@ import (
 	"github.com/kimbellG/tournament-bl/repository"
 	"github.com/kimbellG/tournament-bl/tx"
 	"google.golang.org/grpc"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 func init() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Failed to load config file: %w", err)
+		log.Fatalf("Failed to load config file: %v", err)
 	}
 }
 
 func main() {
 	listener, err := net.Listen("tcp", os.Getenv("SERVICE_ADDRESS"))
 	if err != nil {
-		log.Fatalf("Failed to listen: %w", err)
+		log.Fatalf("Failed to listen: %v", err)
 	}
 
 	db, err := initDB()
 	if err != nil {
-		log.Fatalf("Failed to initialization database: %w", err)
+		log.Fatalf("Failed to initialization database: %v", err)
 	}
 
 	store := tx.NewStore(db)
@@ -47,7 +49,7 @@ func main() {
 	pb.RegisterTournamentServiceServer(grpcServer, handler)
 
 	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("Failed to serve of grpc server: %w", err)
+		log.Fatalf("Failed to serve of grpc server: %v", err)
 	}
 }
 

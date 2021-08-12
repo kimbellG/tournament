@@ -64,7 +64,9 @@ func (tr *TournamentRepository) SelectByID(store tx.DBTX, id uuid.UUID) (*models
 
 func (tr *TournamentRepository) selectUserIDsOfTournament(store tx.DBTX, tournamentID uuid.UUID) ([]models.User, error) {
 	const query = `
-		SELECT * FROM UsersOfTournaments WHERE tournamentID = $1;
+		SELECT Users.id, Users.name, Users.balance
+		FROM UsersOfTournaments INNER JOIN Users ON Users.id = UsersOfTournaments.id
+		WHERE tournamentID = $1;
 	`
 	users := []models.User{}
 
@@ -96,7 +98,7 @@ func (tr *TournamentRepository) selectUserIDsOfTournament(store tx.DBTX, tournam
 func (tr *TournamentRepository) SelectRandomUserOfTournament(store tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
 	const query = `
 		WITH random_id AS (
-			SELECT user FROM UsersOfTournaments WHERE tournament = $1
+			SELECT user FROM UsersOfTournaments WHERE tournamentID = $1
 				OFFSET random() * COUNT(*) LIMIT 1
 		)
 		SELECT * FROM Users WHERE id = (SELECT id FROM random_id);
@@ -118,7 +120,7 @@ func (tr *TournamentRepository) SelectRandomUserOfTournament(store tx.DBTX, tour
 
 func (tr *TournamentRepository) InsertUserToTournament(store tx.DBTX, tournamentID, userID uuid.UUID) error {
 	const query = `
-		INSERT INTO UsersOfTournaments(tournament, user) VALUES ($1, $2); 
+		INSERT INTO UsersOfTournaments(tournamentID, userID) VALUES ($1, $2); 
 	`
 
 	stmt, err := store.Prepare(query)
@@ -157,11 +159,11 @@ func (tr *TournamentRepository) AddToPrize(store tx.DBTX, ID uuid.UUID, d float6
 func (tr *TournamentRepository) RefundDepositToUsers(store tx.DBTX, tournamentID uuid.UUID) error {
 	const query = `
 		WITH depositOfTournament AS (
-			SELECT deposit FROM Tournament WHERE id = $1
+			SELECT deposit FROM Tournaments WHERE id = $1
 		)
 		UPDATE Users
 			SET balance = balance + (SELECT deposit FROM depositOfTournament)
-			WHERE id IN (SELECT id FROM UsersOfTournaments WHERE tournament = $1);
+			WHERE id IN (SELECT id FROM UsersOfTournaments WHERE tournamentID = $1);
 	`
 
 	stmt, err := store.Prepare(query)
@@ -179,7 +181,7 @@ func (tr *TournamentRepository) RefundDepositToUsers(store tx.DBTX, tournamentID
 
 func (tr *TournamentRepository) SetWinner(store tx.DBTX, tournamentID, winnerID uuid.UUID) error {
 	const query = `
-		UPDATE Tournament SET winner = $1 WHERE id = $2;
+		UPDATE Tournaments SET winner = $1 WHERE id = $2;
 	`
 
 	stmt, err := store.Prepare(query)
@@ -197,7 +199,7 @@ func (tr *TournamentRepository) SetWinner(store tx.DBTX, tournamentID, winnerID 
 
 func (tr *TournamentRepository) UpdateStatus(store tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error {
 	const query = `
-		UPDATE Tournament SET status = $1 WHERE id = $2;
+		UPDATE Tournaments SET status = $1 WHERE id = $2;
 	`
 
 	stmt, err := store.Prepare(query)

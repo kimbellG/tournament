@@ -50,7 +50,7 @@ func tournamentToProto(tournament *models.Tournament) *ttgrpc.Tournament {
 		Deposit: tournament.Deposit,
 		Prize:   tournament.Prize,
 		Users:   uuidOfUsersToStringSlice(tournament.Users),
-		Winner:  tournament.Winner,
+		Winner:  tournament.Winner.String(),
 		Status:  string(tournament.Status),
 	}
 }

@@ -23,6 +23,12 @@ type Store struct {
 	db *sql.DB
 }
 
+func NewStore(db *sql.DB) Transactioner {
+	return &Store{
+		db: db,
+	}
+}
+
 func (s *Store) WithTransaction(fn TransactionFunction) error {
 	tx, err := s.db.Begin()
 	if err != nil {

@@ -13,6 +13,14 @@ type TournamentInteractor struct {
 	userRepo UserRepository
 }
 
+func NewTournamentController(repo TournamentRepository, userRepo UserRepository, store tx.Transactioner) TournamentController {
+	return &TournamentInteractor{
+		repo:     repo,
+		userRepo: userRepo,
+		store:    store,
+	}
+}
+
 func (tu *TournamentInteractor) Create(tournament *models.Tournament) (uuid.UUID, error) {
 	var id uuid.UUID
 

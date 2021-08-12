@@ -12,6 +12,13 @@ type UserInteractor struct {
 	store    tx.Transactioner
 }
 
+func NewUserController(repo UserRepository, store tx.Transactioner) UserController {
+	return &UserInteractor{
+		UserRepo: repo,
+		store:    store,
+	}
+}
+
 func (ui *UserInteractor) Save(user *models.User) (uuid.UUID, error) {
 	var id uuid.UUID
 

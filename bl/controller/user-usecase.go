@@ -9,5 +9,5 @@ type UserController interface {
 	Save(user *models.User) (uuid.UUID, error)
 	GetByID(id uuid.UUID) (*models.User, error)
 	DeleteByID(id uuid.UUID) error
-	SumToBalance(id uuid.UUID, addend float64) error
+	UpdateBalance(id uuid.UUID, addend float64) error
 }

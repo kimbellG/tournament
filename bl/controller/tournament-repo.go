@@ -1,4 +1,4 @@
-package usecases
+package controller
 
 import (
 	"github.com/google/uuid"

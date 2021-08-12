@@ -1,13 +1,13 @@
-package transport
+package handler
 
 import (
 	"context"
 
 	"github.com/google/uuid"
 	"github.com/kimbellG/kerror"
+	usecases "github.com/kimbellG/tournament-bl/controller"
+	ttgrpc "github.com/kimbellG/tournament-bl/handler/grpc"
 	"github.com/kimbellG/tournament-bl/models"
-	ttgrpc "github.com/kimbellG/tournament-bl/transport/grpc"
-	"github.com/kimbellG/tournament-bl/usecases"
 )
 
 type ServiceController struct {

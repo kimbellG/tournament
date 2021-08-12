@@ -99,7 +99,7 @@ func (tr *TournamentRepository) SelectRandomUserOfTournament(store tx.DBTX, tour
 			SELECT user FROM UsersOfTournaments WHERE tournament = $1
 				OFFSET random() * COUNT(*) LIMIT 1
 		)
-		SELECT * FROM Users WHERER id = (SELECT id FROM random_id);
+		SELECT * FROM Users WHERE id = (SELECT id FROM random_id);
 	`
 	var user models.User
 
@@ -134,7 +134,7 @@ func (tr *TournamentRepository) InsertUserToTournament(store tx.DBTX, tournament
 	return nil
 }
 
-func (tr *TournamentRepository) AddToPrize(store tx.DBTX, ID uuid.UUID, addend float64) error {
+func (tr *TournamentRepository) AddToPrize(store tx.DBTX, ID uuid.UUID, d float64) error {
 	const query = `
 		UPDATE Tournaments
 			SET prize = prize + $1
@@ -147,7 +147,7 @@ func (tr *TournamentRepository) AddToPrize(store tx.DBTX, ID uuid.UUID, addend f
 	}
 	defer debugutil.Close(stmt)
 
-	if _, err := stmt.Exec(addend, ID); err != nil {
+	if _, err := stmt.Exec(d, ID); err != nil {
 		return kerror.Newf(kerror.SQLExecutionError, "exec query: %v", err)
 	}
 

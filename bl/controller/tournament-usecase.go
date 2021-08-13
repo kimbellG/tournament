@@ -5,7 +5,7 @@ import (
 	"github.com/kimbellG/tournament-bl/models"
 )
 
-type TournamentUsecase interface {
+type TournamentController interface {
 	Create(tournament *models.Tournament) (uuid.UUID, error)
 	GetByID(id uuid.UUID) (*models.Tournament, error)
 	Join(tournamnetID uuid.UUID, userID uuid.UUID) error

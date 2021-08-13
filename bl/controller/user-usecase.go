@@ -5,7 +5,7 @@ import (
 	"github.com/kimbellG/tournament-bl/models"
 )
 
-type UserUsecase interface {
+type UserController interface {
 	Save(user *models.User) (uuid.UUID, error)
 	GetByID(id uuid.UUID) (*models.User, error)
 	DeleteByID(id uuid.UUID) error

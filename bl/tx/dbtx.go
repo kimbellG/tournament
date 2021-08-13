@@ -15,21 +15,21 @@ type DBTX interface {
 
 type TransactionFunction func(store DBTX) error
 
-type Transactioner interface {
+type Store interface {
 	WithTransaction(fn TransactionFunction) error
 }
 
-type Store struct {
+type TxStore struct {
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) Transactioner {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &TxStore{
 		db: db,
 	}
 }
 
-func (s *Store) WithTransaction(fn TransactionFunction) error {
+func (s *TxStore) WithTransaction(fn TransactionFunction) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return kerror.Newf(kerror.SQLTransactionBeginError, "begin transaction: %w", err)

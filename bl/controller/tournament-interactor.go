@@ -9,11 +9,11 @@ import (
 
 type TournamentInteractor struct {
 	repo     TournamentRepository
-	store    tx.Transactioner
+	store    tx.Store
 	userRepo UserRepository
 }
 
-func NewTournamentController(repo TournamentRepository, userRepo UserRepository, store tx.Transactioner) TournamentController {
+func NewTournamentController(repo TournamentRepository, userRepo UserRepository, store tx.Store) TournamentController {
 	return &TournamentInteractor{
 		repo:     repo,
 		userRepo: userRepo,

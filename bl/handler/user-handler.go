@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kimbellG/kerror"
+	"github.com/kimbellG/kerror/kegrpc"
 	ttgrpc "github.com/kimbellG/tournament-bl/handler/grpc"
 	"github.com/kimbellG/tournament-bl/models"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -13,12 +14,12 @@ import (
 func (sc *ServiceHandler) SaveUser(ctx context.Context, user *ttgrpc.User) (*ttgrpc.SaveResponse, error) {
 	mUser, err := userFromProto(user)
 	if err != nil {
-		return nil, kerror.Errorf(err, "marshaling user struct to models")
+		return nil, kegrpc.Errorf(err, "marshaling user struct to models")
 	}
 
 	id, err := sc.userController.Save(ctx, mUser)
 	if err != nil {
-		return nil, kerror.Errorf(err, "save user")
+		return nil, kegrpc.Errorf(err, "save user")
 	}
 
 	return &ttgrpc.SaveResponse{
@@ -34,7 +35,7 @@ func userFromProto(gUser *ttgrpc.User) (*models.User, error) {
 
 	id, err := uuid.Parse(gUser.GetID())
 	if err != nil {
-		return nil, kerror.Newf(kerror.InvalidID, "parser id: %v", err)
+		return nil, kegrpc.Newf(kerror.InvalidID, "parser id: %v", err)
 	}
 
 	mUser.ID = id
@@ -44,12 +45,12 @@ func userFromProto(gUser *ttgrpc.User) (*models.User, error) {
 func (sc *ServiceHandler) GetUserById(ctx context.Context, r *ttgrpc.UserRequest) (*ttgrpc.User, error) {
 	id, err := userIDFromProto(r)
 	if err != nil {
-		return nil, kerror.Errorf(err, "marshaling id from request")
+		return nil, kegrpc.Errorf(err, "marshaling id from request")
 	}
 
 	user, err := sc.userController.GetByID(ctx, id)
 	if err != nil {
-		return nil, kerror.Errorf(err, "get user from controller")
+		return nil, kegrpc.Errorf(err, "get user from controller")
 	}
 
 	return userToProto(user), nil
@@ -58,7 +59,7 @@ func (sc *ServiceHandler) GetUserById(ctx context.Context, r *ttgrpc.UserRequest
 func userIDFromProto(r *ttgrpc.UserRequest) (uuid.UUID, error) {
 	id, err := uuid.Parse(r.GetID())
 	if err != nil {
-		return id, kerror.Newf(kerror.InvalidID, "parse id: %w", err)
+		return id, kegrpc.Newf(kerror.InvalidID, "parse id: %w", err)
 	}
 
 	return id, nil
@@ -75,11 +76,11 @@ func userToProto(user *models.User) *ttgrpc.User {
 func (sc *ServiceHandler) DeleteUserByID(ctx context.Context, r *ttgrpc.UserRequest) (*emptypb.Empty, error) {
 	id, err := userIDFromProto(r)
 	if err != nil {
-		return &emptypb.Empty{}, kerror.Newf(kerror.InvalidID, "marshaling from user request: %w", err)
+		return &emptypb.Empty{}, kegrpc.Newf(kerror.InvalidID, "marshaling from user request: %w", err)
 	}
 
 	if err := sc.userController.DeleteByID(ctx, id); err != nil {
-		return &emptypb.Empty{}, kerror.Errorf(err, "delete user from controller")
+		return &emptypb.Empty{}, kegrpc.Errorf(err, "delete user from controller")
 	}
 
 	return &emptypb.Empty{}, nil
@@ -88,11 +89,11 @@ func (sc *ServiceHandler) DeleteUserByID(ctx context.Context, r *ttgrpc.UserRequ
 func (sc *ServiceHandler) SumToBalance(ctx context.Context, r *ttgrpc.RequestToUpdateBalance) (*emptypb.Empty, error) {
 	id, err := uuid.Parse(r.GetID())
 	if err != nil {
-		return &emptypb.Empty{}, kerror.Newf(kerror.InvalidID, "parsing id from request: %w", err)
+		return &emptypb.Empty{}, kegrpc.Newf(kerror.InvalidID, "parsing id from request: %w", err)
 	}
 
 	if err := sc.userController.UpdateBalance(ctx, id, r.GetAddend()); err != nil {
-		return &emptypb.Empty{}, kerror.Errorf(err, "controller")
+		return &emptypb.Empty{}, kegrpc.Errorf(err, "controller")
 	}
 
 	return &emptypb.Empty{}, nil

@@ -5,23 +5,18 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kimbellG/kerror"
-	"github.com/kimbellG/tournament-bl/controller"
 	ttgrpc "github.com/kimbellG/tournament-bl/handler/grpc"
 	"github.com/kimbellG/tournament-bl/models"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type ServiceController struct {
-	userController controller.UserController
-}
-
-func (sc *ServiceController) SaveUser(ctx context.Context, user *ttgrpc.User) (*ttgrpc.SaveResponse, error) {
+func (sc *ServiceHandler) SaveUser(ctx context.Context, user *ttgrpc.User) (*ttgrpc.SaveResponse, error) {
 	mUser, err := userFromProto(user)
 	if err != nil {
 		return nil, kerror.Errorf(err, "marshaling user struct to models")
 	}
 
-	id, err := sc.userController.Save(mUser)
+	id, err := sc.userController.Save(ctx, mUser)
 	if err != nil {
 		return nil, kerror.Errorf(err, "save user")
 	}
@@ -46,13 +41,13 @@ func userFromProto(gUser *ttgrpc.User) (*models.User, error) {
 	return mUser, nil
 }
 
-func (sc *ServiceController) GetUserById(ctx context.Context, r *ttgrpc.UserRequest) (*ttgrpc.User, error) {
+func (sc *ServiceHandler) GetUserById(ctx context.Context, r *ttgrpc.UserRequest) (*ttgrpc.User, error) {
 	id, err := userIDFromProto(r)
 	if err != nil {
 		return nil, kerror.Errorf(err, "marshaling id from request")
 	}
 
-	user, err := sc.userController.GetByID(id)
+	user, err := sc.userController.GetByID(ctx, id)
 	if err != nil {
 		return nil, kerror.Errorf(err, "get user from controller")
 	}
@@ -77,26 +72,26 @@ func userToProto(user *models.User) *ttgrpc.User {
 	}
 }
 
-func (sc *ServiceController) DeleteUserByID(ctx context.Context, r *ttgrpc.UserRequest) (*emptypb.Empty, error) {
+func (sc *ServiceHandler) DeleteUserByID(ctx context.Context, r *ttgrpc.UserRequest) (*emptypb.Empty, error) {
 	id, err := userIDFromProto(r)
 	if err != nil {
 		return &emptypb.Empty{}, kerror.Newf(kerror.InvalidID, "marshaling from user request: %w", err)
 	}
 
-	if err := sc.userController.DeleteByID(id); err != nil {
+	if err := sc.userController.DeleteByID(ctx, id); err != nil {
 		return &emptypb.Empty{}, kerror.Errorf(err, "delete user from controller")
 	}
 
 	return &emptypb.Empty{}, nil
 }
 
-func (sc *ServiceController) SumToBalance(ctx context.Context, r *ttgrpc.RequestToUpdateBalance) (*emptypb.Empty, error) {
+func (sc *ServiceHandler) SumToBalance(ctx context.Context, r *ttgrpc.RequestToUpdateBalance) (*emptypb.Empty, error) {
 	id, err := uuid.Parse(r.GetID())
 	if err != nil {
 		return &emptypb.Empty{}, kerror.Newf(kerror.InvalidID, "parsing id from request: %w", err)
 	}
 
-	if err := sc.userController.SumToBalance(id, r.GetAddend()); err != nil {
+	if err := sc.userController.SumToBalance(ctx, id, r.GetAddend()); err != nil {
 		return &emptypb.Empty{}, kerror.Errorf(err, "controller")
 	}
 

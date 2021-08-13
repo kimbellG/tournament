@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/kimbellG/kerror"
 	"github.com/kimbellG/tournament-bl/models"
@@ -13,13 +15,13 @@ type TournamentInteractor struct {
 	userRepo UserRepository
 }
 
-func (tu *TournamentInteractor) Create(tournament *models.Tournament) (uuid.UUID, error) {
+func (tu *TournamentInteractor) Create(ctx context.Context, tournament *models.Tournament) (uuid.UUID, error) {
 	var id uuid.UUID
 
 	err := tu.store.WithTransaction(func(store tx.DBTX) error {
 		var err error
 
-		id, err = tu.repo.Insert(store, tournament)
+		id, err = tu.repo.Insert(ctx, store, tournament)
 		if err != nil {
 			return kerror.Errorf(err, "repository")
 		}
@@ -34,13 +36,13 @@ func (tu *TournamentInteractor) Create(tournament *models.Tournament) (uuid.UUID
 
 }
 
-func (tu *TournamentInteractor) GetByID(id uuid.UUID) (*models.Tournament, error) {
+func (tu *TournamentInteractor) GetByID(ctx context.Context, id uuid.UUID) (*models.Tournament, error) {
 	var tournament *models.Tournament
 
 	err := tu.store.WithTransaction(func(store tx.DBTX) error {
 		var err error
 
-		tournament, err = tu.repo.SelectByID(store, id)
+		tournament, err = tu.repo.SelectByID(ctx, store, id)
 		if err != nil {
 			return kerror.Errorf(err, "repository")
 		}
@@ -54,9 +56,9 @@ func (tu *TournamentInteractor) GetByID(id uuid.UUID) (*models.Tournament, error
 	return tournament, nil
 }
 
-func (tu *TournamentInteractor) Join(tournamentID uuid.UUID, userID uuid.UUID) error {
+func (tu *TournamentInteractor) Join(ctx context.Context, tournamentID uuid.UUID, userID uuid.UUID) error {
 	err := tu.store.WithTransaction(func(store tx.DBTX) error {
-		isActiveTournament, err := tu.isActiveTournament(store, tournamentID)
+		isActiveTournament, err := tu.isActiveTournament(ctx, store, tournamentID)
 		if err != nil {
 			return kerror.Errorf(err, "check status of tournament")
 		}
@@ -65,20 +67,20 @@ func (tu *TournamentInteractor) Join(tournamentID uuid.UUID, userID uuid.UUID) e
 			return kerror.Newf(kerror.BadRequest, "tournament isn't active")
 		}
 
-		deposit, err := tu.getDeposit(store, tournamentID)
+		deposit, err := tu.getDeposit(ctx, store, tournamentID)
 		if err != nil {
 			return kerror.Errorf(err, "getting deposit")
 		}
 
-		if err := tu.userRepo.UpdateBalanceBySum(store, userID, -deposit); err != nil {
+		if err := tu.userRepo.UpdateBalanceBySum(ctx, store, userID, -deposit); err != nil {
 			return kerror.Errorf(err, "subtraction from the balance")
 		}
 
-		if err := tu.repo.AddToPrize(store, tournamentID, deposit); err != nil {
+		if err := tu.repo.AddToPrize(ctx, store, tournamentID, deposit); err != nil {
 			return kerror.Errorf(err, "adding to prize of tournament")
 		}
 
-		if err := tu.repo.InsertUserToTournament(store, tournamentID, userID); err != nil {
+		if err := tu.repo.InsertUserToTournament(ctx, store, tournamentID, userID); err != nil {
 			return kerror.Errorf(err, "adding user to tournament")
 		}
 
@@ -91,8 +93,8 @@ func (tu *TournamentInteractor) Join(tournamentID uuid.UUID, userID uuid.UUID) e
 	return nil
 }
 
-func (tu *TournamentInteractor) getDeposit(store tx.DBTX, tournamentID uuid.UUID) (float64, error) {
-	tournament, err := tu.repo.SelectByID(store, tournamentID)
+func (tu *TournamentInteractor) getDeposit(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) (float64, error) {
+	tournament, err := tu.repo.SelectByID(ctx, store, tournamentID)
 	if err != nil {
 		return -1, kerror.Errorf(err, "get tournament")
 	}
@@ -100,8 +102,8 @@ func (tu *TournamentInteractor) getDeposit(store tx.DBTX, tournamentID uuid.UUID
 	return tournament.Deposit, nil
 }
 
-func (tu *TournamentInteractor) isActiveTournament(store tx.DBTX, tournamentID uuid.UUID) (bool, error) {
-	status, err := tu.getStatus(store, tournamentID)
+func (tu *TournamentInteractor) isActiveTournament(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) (bool, error) {
+	status, err := tu.getStatus(ctx, store, tournamentID)
 	if err != nil {
 		return false, kerror.Errorf(err, "get status of tournament")
 	}
@@ -109,8 +111,8 @@ func (tu *TournamentInteractor) isActiveTournament(store tx.DBTX, tournamentID u
 	return status == models.Active, nil
 }
 
-func (tu *TournamentInteractor) getStatus(store tx.DBTX, tournamentID uuid.UUID) (models.TournamentStatus, error) {
-	tournament, err := tu.repo.SelectByID(store, tournamentID)
+func (tu *TournamentInteractor) getStatus(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) (models.TournamentStatus, error) {
+	tournament, err := tu.repo.SelectByID(ctx, store, tournamentID)
 	if err != nil {
 		return "", kerror.Errorf(err, "get tournament")
 	}
@@ -118,10 +120,10 @@ func (tu *TournamentInteractor) getStatus(store tx.DBTX, tournamentID uuid.UUID)
 	return tournament.Status, nil
 }
 
-func (tu *TournamentInteractor) Finish(id uuid.UUID) error {
+func (tu *TournamentInteractor) Finish(ctx context.Context, id uuid.UUID) error {
 	err := tu.store.WithTransaction(func(store tx.DBTX) error {
 
-		isActiveTournament, err := tu.isActiveTournament(store, id)
+		isActiveTournament, err := tu.isActiveTournament(ctx, store, id)
 		if err != nil {
 			return kerror.Errorf(err, "check status of tournament")
 		}
@@ -130,21 +132,21 @@ func (tu *TournamentInteractor) Finish(id uuid.UUID) error {
 			return kerror.Newf(kerror.BadRequest, "tournament isn't active")
 		}
 
-		prize, err := tu.getPrize(store, id)
+		prize, err := tu.getPrize(ctx, store, id)
 		if err != nil {
 			return kerror.Errorf(err, "get prize")
 		}
 
-		winner, err := tu.generateWinner(store, id)
+		winner, err := tu.generateWinner(ctx, store, id)
 		if err != nil {
 			return kerror.Errorf(err, "generate winner")
 		}
 
-		if err := tu.userRepo.UpdateBalanceBySum(store, winner.ID, prize); err != nil {
+		if err := tu.userRepo.UpdateBalanceBySum(ctx, store, winner.ID, prize); err != nil {
 			return kerror.Errorf(err, "add prize to winner's balance")
 		}
 
-		if err := tu.repo.UpdateStatus(store, id, models.Finish); err != nil {
+		if err := tu.repo.UpdateStatus(ctx, store, id, models.Finish); err != nil {
 			return kerror.Errorf(err, "change status")
 		}
 
@@ -157,8 +159,8 @@ func (tu *TournamentInteractor) Finish(id uuid.UUID) error {
 	return nil
 }
 
-func (tu *TournamentInteractor) generateWinner(store tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
-	winner, err := tu.repo.SelectRandomUserOfTournament(store, tournamentID)
+func (tu *TournamentInteractor) generateWinner(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
+	winner, err := tu.repo.SelectRandomUserOfTournament(ctx, store, tournamentID)
 	if err != nil {
 		return nil, kerror.Errorf(err, "get random user")
 	}
@@ -166,8 +168,8 @@ func (tu *TournamentInteractor) generateWinner(store tx.DBTX, tournamentID uuid.
 	return winner, nil
 }
 
-func (tu *TournamentInteractor) getPrize(store tx.DBTX, tournamentID uuid.UUID) (float64, error) {
-	tournament, err := tu.repo.SelectByID(store, tournamentID)
+func (tu *TournamentInteractor) getPrize(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) (float64, error) {
+	tournament, err := tu.repo.SelectByID(ctx, store, tournamentID)
 	if err != nil {
 		return -1, kerror.Errorf(err, "get tournament")
 	}
@@ -175,9 +177,9 @@ func (tu *TournamentInteractor) getPrize(store tx.DBTX, tournamentID uuid.UUID) 
 	return tournament.Prize, nil
 }
 
-func (tu *TournamentInteractor) Cancel(id uuid.UUID) error {
+func (tu *TournamentInteractor) Cancel(ctx context.Context, id uuid.UUID) error {
 	err := tu.store.WithTransaction(func(store tx.DBTX) error {
-		isActiveTournament, err := tu.isActiveTournament(store, id)
+		isActiveTournament, err := tu.isActiveTournament(ctx, store, id)
 		if err != nil {
 			return kerror.Errorf(err, "check status of tournament")
 		}
@@ -186,11 +188,11 @@ func (tu *TournamentInteractor) Cancel(id uuid.UUID) error {
 			return kerror.Newf(kerror.BadRequest, "tournament isn't active")
 		}
 
-		if err := tu.repo.RefundDepositToUsers(store, id); err != nil {
+		if err := tu.repo.RefundDepositToUsers(ctx, store, id); err != nil {
 			return kerror.Errorf(err, "add deposit to user balance")
 		}
 
-		if err := tu.repo.UpdateStatus(store, id, models.Cancel); err != nil {
+		if err := tu.repo.UpdateStatus(ctx, store, id, models.Cancel); err != nil {
 			return kerror.Errorf(err, "change status")
 		}
 

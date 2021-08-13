@@ -23,6 +23,11 @@ type TournamentServiceClient interface {
 	GetUserById(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*User, error)
 	DeleteUserByID(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SumToBalance(ctx context.Context, in *RequestToUpdateBalance, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateTournament(ctx context.Context, in *CreateTournamentRequest, opts ...grpc.CallOption) (*CreateTournamentResponse, error)
+	GetTournamentByID(ctx context.Context, in *TournamentRequest, opts ...grpc.CallOption) (*Tournament, error)
+	JoinTournament(ctx context.Context, in *JoinRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	FinishTournament(ctx context.Context, in *TournamentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CancelTournament(ctx context.Context, in *TournamentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type tournamentServiceClient struct {
@@ -35,7 +40,7 @@ func NewTournamentServiceClient(cc grpc.ClientConnInterface) TournamentServiceCl
 
 func (c *tournamentServiceClient) SaveUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*SaveResponse, error) {
 	out := new(SaveResponse)
-	err := c.cc.Invoke(ctx, "/interfaces.TournamentService/SaveUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/handler.TournamentService/SaveUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +49,7 @@ func (c *tournamentServiceClient) SaveUser(ctx context.Context, in *User, opts .
 
 func (c *tournamentServiceClient) GetUserById(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*User, error) {
 	out := new(User)
-	err := c.cc.Invoke(ctx, "/interfaces.TournamentService/GetUserById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/handler.TournamentService/GetUserById", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +58,7 @@ func (c *tournamentServiceClient) GetUserById(ctx context.Context, in *UserReque
 
 func (c *tournamentServiceClient) DeleteUserByID(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/interfaces.TournamentService/DeleteUserByID", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/handler.TournamentService/DeleteUserByID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +67,52 @@ func (c *tournamentServiceClient) DeleteUserByID(ctx context.Context, in *UserRe
 
 func (c *tournamentServiceClient) SumToBalance(ctx context.Context, in *RequestToUpdateBalance, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/interfaces.TournamentService/SumToBalance", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/handler.TournamentService/SumToBalance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tournamentServiceClient) CreateTournament(ctx context.Context, in *CreateTournamentRequest, opts ...grpc.CallOption) (*CreateTournamentResponse, error) {
+	out := new(CreateTournamentResponse)
+	err := c.cc.Invoke(ctx, "/handler.TournamentService/CreateTournament", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tournamentServiceClient) GetTournamentByID(ctx context.Context, in *TournamentRequest, opts ...grpc.CallOption) (*Tournament, error) {
+	out := new(Tournament)
+	err := c.cc.Invoke(ctx, "/handler.TournamentService/GetTournamentByID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tournamentServiceClient) JoinTournament(ctx context.Context, in *JoinRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/handler.TournamentService/JoinTournament", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tournamentServiceClient) FinishTournament(ctx context.Context, in *TournamentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/handler.TournamentService/FinishTournament", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tournamentServiceClient) CancelTournament(ctx context.Context, in *TournamentRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/handler.TournamentService/CancelTournament", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +127,11 @@ type TournamentServiceServer interface {
 	GetUserById(context.Context, *UserRequest) (*User, error)
 	DeleteUserByID(context.Context, *UserRequest) (*emptypb.Empty, error)
 	SumToBalance(context.Context, *RequestToUpdateBalance) (*emptypb.Empty, error)
+	CreateTournament(context.Context, *CreateTournamentRequest) (*CreateTournamentResponse, error)
+	GetTournamentByID(context.Context, *TournamentRequest) (*Tournament, error)
+	JoinTournament(context.Context, *JoinRequest) (*emptypb.Empty, error)
+	FinishTournament(context.Context, *TournamentRequest) (*emptypb.Empty, error)
+	CancelTournament(context.Context, *TournamentRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedTournamentServiceServer()
 }
 
@@ -95,6 +150,21 @@ func (UnimplementedTournamentServiceServer) DeleteUserByID(context.Context, *Use
 }
 func (UnimplementedTournamentServiceServer) SumToBalance(context.Context, *RequestToUpdateBalance) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SumToBalance not implemented")
+}
+func (UnimplementedTournamentServiceServer) CreateTournament(context.Context, *CreateTournamentRequest) (*CreateTournamentResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTournament not implemented")
+}
+func (UnimplementedTournamentServiceServer) GetTournamentByID(context.Context, *TournamentRequest) (*Tournament, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTournamentByID not implemented")
+}
+func (UnimplementedTournamentServiceServer) JoinTournament(context.Context, *JoinRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method JoinTournament not implemented")
+}
+func (UnimplementedTournamentServiceServer) FinishTournament(context.Context, *TournamentRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FinishTournament not implemented")
+}
+func (UnimplementedTournamentServiceServer) CancelTournament(context.Context, *TournamentRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelTournament not implemented")
 }
 func (UnimplementedTournamentServiceServer) mustEmbedUnimplementedTournamentServiceServer() {}
 
@@ -119,7 +189,7 @@ func _TournamentService_SaveUser_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/interfaces.TournamentService/SaveUser",
+		FullMethod: "/handler.TournamentService/SaveUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TournamentServiceServer).SaveUser(ctx, req.(*User))
@@ -137,7 +207,7 @@ func _TournamentService_GetUserById_Handler(srv interface{}, ctx context.Context
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/interfaces.TournamentService/GetUserById",
+		FullMethod: "/handler.TournamentService/GetUserById",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TournamentServiceServer).GetUserById(ctx, req.(*UserRequest))
@@ -155,7 +225,7 @@ func _TournamentService_DeleteUserByID_Handler(srv interface{}, ctx context.Cont
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/interfaces.TournamentService/DeleteUserByID",
+		FullMethod: "/handler.TournamentService/DeleteUserByID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TournamentServiceServer).DeleteUserByID(ctx, req.(*UserRequest))
@@ -173,10 +243,100 @@ func _TournamentService_SumToBalance_Handler(srv interface{}, ctx context.Contex
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/interfaces.TournamentService/SumToBalance",
+		FullMethod: "/handler.TournamentService/SumToBalance",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TournamentServiceServer).SumToBalance(ctx, req.(*RequestToUpdateBalance))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TournamentService_CreateTournament_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTournamentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TournamentServiceServer).CreateTournament(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/handler.TournamentService/CreateTournament",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TournamentServiceServer).CreateTournament(ctx, req.(*CreateTournamentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TournamentService_GetTournamentByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TournamentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TournamentServiceServer).GetTournamentByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/handler.TournamentService/GetTournamentByID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TournamentServiceServer).GetTournamentByID(ctx, req.(*TournamentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TournamentService_JoinTournament_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(JoinRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TournamentServiceServer).JoinTournament(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/handler.TournamentService/JoinTournament",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TournamentServiceServer).JoinTournament(ctx, req.(*JoinRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TournamentService_FinishTournament_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TournamentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TournamentServiceServer).FinishTournament(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/handler.TournamentService/FinishTournament",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TournamentServiceServer).FinishTournament(ctx, req.(*TournamentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TournamentService_CancelTournament_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TournamentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TournamentServiceServer).CancelTournament(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/handler.TournamentService/CancelTournament",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TournamentServiceServer).CancelTournament(ctx, req.(*TournamentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -185,7 +345,7 @@ func _TournamentService_SumToBalance_Handler(srv interface{}, ctx context.Contex
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var TournamentService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "interfaces.TournamentService",
+	ServiceName: "handler.TournamentService",
 	HandlerType: (*TournamentServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -203,6 +363,26 @@ var TournamentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SumToBalance",
 			Handler:    _TournamentService_SumToBalance_Handler,
+		},
+		{
+			MethodName: "CreateTournament",
+			Handler:    _TournamentService_CreateTournament_Handler,
+		},
+		{
+			MethodName: "GetTournamentByID",
+			Handler:    _TournamentService_GetTournamentByID_Handler,
+		},
+		{
+			MethodName: "JoinTournament",
+			Handler:    _TournamentService_JoinTournament_Handler,
+		},
+		{
+			MethodName: "FinishTournament",
+			Handler:    _TournamentService_FinishTournament_Handler,
+		},
+		{
+			MethodName: "CancelTournament",
+			Handler:    _TournamentService_CancelTournament_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

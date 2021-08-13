@@ -1,13 +1,15 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/kimbellG/tournament-bl/models"
 )
 
 type UserController interface {
-	Save(user *models.User) (uuid.UUID, error)
-	GetByID(id uuid.UUID) (*models.User, error)
-	DeleteByID(id uuid.UUID) error
-	SumToBalance(id uuid.UUID, addend float64) error
+	Save(ctx context.Context, user *models.User) (uuid.UUID, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*models.User, error)
+	DeleteByID(ctx context.Context, id uuid.UUID) error
+	SumToBalance(ctx context.Context, id uuid.UUID, addend float64) error
 }

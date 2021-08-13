@@ -1,21 +1,23 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/kimbellG/tournament-bl/models"
 	"github.com/kimbellG/tournament-bl/tx"
 )
 
 type TournamentRepository interface {
-	Insert(repo tx.DBTX, tournament *models.Tournament) (uuid.UUID, error)
-	InsertUserToTournament(repo tx.DBTX, tournamentID, userID uuid.UUID) error
+	Insert(ctx context.Context, repo tx.DBTX, tournament *models.Tournament) (uuid.UUID, error)
+	InsertUserToTournament(ctx context.Context, repo tx.DBTX, tournamentID, userID uuid.UUID) error
 
-	SelectByID(repo tx.DBTX, id uuid.UUID) (*models.Tournament, error)
-	SelectRandomUserOfTournament(repo tx.DBTX, tournamentID uuid.UUID) (*models.User, error)
+	SelectByID(ctx context.Context, repo tx.DBTX, id uuid.UUID) (*models.Tournament, error)
+	SelectRandomUserOfTournament(ctx context.Context, repo tx.DBTX, tournamentID uuid.UUID) (*models.User, error)
 
-	AddToPrize(repo tx.DBTX, ID uuid.UUID, end float64) error
-	RefundDepositToUsers(repo tx.DBTX, tournamentID uuid.UUID) error
-	SetWinner(repo tx.DBTX, tournamentID, userID uuid.UUID) error
+	AddToPrize(ctx context.Context, repo tx.DBTX, ID uuid.UUID, end float64) error
+	RefundDepositToUsers(ctx context.Context, repo tx.DBTX, tournamentID uuid.UUID) error
+	SetWinner(ctx context.Context, repo tx.DBTX, tournamentID, userID uuid.UUID) error
 
-	UpdateStatus(repo tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error
+	UpdateStatus(ctx context.Context, repo tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error
 }

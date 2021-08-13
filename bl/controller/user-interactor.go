@@ -11,7 +11,14 @@ import (
 
 type UserInteractor struct {
 	UserRepo UserRepository
-	store    tx.Transactioner
+	store    tx.Store
+}
+
+func NewUserController(repo UserRepository, store tx.Store) UserController {
+	return &UserInteractor{
+		UserRepo: repo,
+		store:    store,
+	}
 }
 
 func (ui *UserInteractor) Save(ctx context.Context, user *models.User) (uuid.UUID, error) {

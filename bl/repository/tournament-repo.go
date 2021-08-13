@@ -65,7 +65,9 @@ func (tr *TournamentRepository) SelectByID(ctx context.Context, store tx.DBTX, i
 
 func (tr *TournamentRepository) selectUserIDsOfTournament(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) ([]models.User, error) {
 	const query = `
-		SELECT * FROM UsersOfTournaments WHERE tournamentID = $1;
+		SELECT Users.id, Users.name, Users.balance
+		FROM UsersOfTournaments INNER JOIN Users ON Users.id = UsersOfTournaments.id
+		WHERE tournamentID = $1;
 	`
 	users := []models.User{}
 
@@ -97,7 +99,7 @@ func (tr *TournamentRepository) selectUserIDsOfTournament(ctx context.Context, s
 func (tr *TournamentRepository) SelectRandomUserOfTournament(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
 	const query = `
 		WITH random_id AS (
-			SELECT user FROM UsersOfTournaments WHERE tournament = $1
+			SELECT user FROM UsersOfTournaments WHERE tournamentID = $1
 				OFFSET random() * COUNT(*) LIMIT 1
 		)
 		SELECT * FROM Users WHERE id = (SELECT id FROM random_id);
@@ -119,7 +121,7 @@ func (tr *TournamentRepository) SelectRandomUserOfTournament(ctx context.Context
 
 func (tr *TournamentRepository) InsertUserToTournament(ctx context.Context, store tx.DBTX, tournamentID, userID uuid.UUID) error {
 	const query = `
-		INSERT INTO UsersOfTournaments(tournament, user) VALUES ($1, $2); 
+		INSERT INTO UsersOfTournaments(tournamentID, userID) VALUES ($1, $2); 
 	`
 
 	stmt, err := store.PrepareContext(ctx, query)
@@ -158,11 +160,11 @@ func (tr *TournamentRepository) AddToPrize(ctx context.Context, store tx.DBTX, I
 func (tr *TournamentRepository) RefundDepositToUsers(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) error {
 	const query = `
 		WITH depositOfTournament AS (
-			SELECT deposit FROM Tournament WHERE id = $1
+			SELECT deposit FROM Tournaments WHERE id = $1
 		)
 		UPDATE Users
 			SET balance = balance + (SELECT deposit FROM depositOfTournament)
-			WHERE id IN (SELECT id FROM UsersOfTournaments WHERE tournament = $1);
+			WHERE id IN (SELECT id FROM UsersOfTournaments WHERE tournamentID = $1);
 	`
 
 	stmt, err := store.PrepareContext(ctx, query)
@@ -180,7 +182,7 @@ func (tr *TournamentRepository) RefundDepositToUsers(ctx context.Context, store 
 
 func (tr *TournamentRepository) SetWinner(ctx context.Context, store tx.DBTX, tournamentID, winnerID uuid.UUID) error {
 	const query = `
-		UPDATE Tournament SET winner = $1 WHERE id = $2;
+		UPDATE Tournaments SET winner = $1 WHERE id = $2;
 	`
 
 	stmt, err := store.PrepareContext(ctx, query)
@@ -198,7 +200,7 @@ func (tr *TournamentRepository) SetWinner(ctx context.Context, store tx.DBTX, to
 
 func (tr *TournamentRepository) UpdateStatus(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error {
 	const query = `
-		UPDATE Tournament SET status = $1 WHERE id = $2;
+		UPDATE Tournaments SET status = $1 WHERE id = $2;
 	`
 
 	stmt, err := store.PrepareContext(ctx, query)

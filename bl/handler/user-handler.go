@@ -91,7 +91,7 @@ func (sc *ServiceHandler) SumToBalance(ctx context.Context, r *ttgrpc.RequestToU
 		return &emptypb.Empty{}, kerror.Newf(kerror.InvalidID, "parsing id from request: %w", err)
 	}
 
-	if err := sc.userController.SumToBalance(ctx, id, r.GetAddend()); err != nil {
+	if err := sc.userController.UpdateBalance(ctx, id, r.GetAddend()); err != nil {
 		return &emptypb.Empty{}, kerror.Errorf(err, "controller")
 	}
 

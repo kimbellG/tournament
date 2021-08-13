@@ -18,6 +18,6 @@ type Tournament struct {
 	Deposit float64
 	Prize   float64
 	Users   []User
-	Winner  string
+	Winner  uuid.UUID
 	Status  TournamentStatus
 }

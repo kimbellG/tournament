@@ -1,14 +1,16 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/kimbellG/tournament-bl/models"
 )
 
 type TournamentController interface {
-	Create(tournament *models.Tournament) (uuid.UUID, error)
-	GetByID(id uuid.UUID) (*models.Tournament, error)
-	Join(tournamnetID uuid.UUID, userID uuid.UUID) error
-	Finish(id uuid.UUID) error
-	Cancel(id uuid.UUID) error
+	Create(ctx context.Context, tournament *models.Tournament) (uuid.UUID, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*models.Tournament, error)
+	Join(ctx context.Context, tournamnetID uuid.UUID, userID uuid.UUID) error
+	Finish(ctx context.Context, id uuid.UUID) error
+	Cancel(ctx context.Context, id uuid.UUID) error
 }

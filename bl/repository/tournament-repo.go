@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/google/uuid"
@@ -12,39 +13,39 @@ import (
 
 type TournamentRepository struct{}
 
-func (tr *TournamentRepository) Insert(store tx.DBTX, tournament *models.Tournament) (uuid.UUID, error) {
+func (tr *TournamentRepository) Insert(ctx context.Context, store tx.DBTX, tournament *models.Tournament) (uuid.UUID, error) {
 	const query = `
 		INSERT INTO Tournaments(name, deposit) VALUES ($1, $2)
 			RETURNING id;
 	`
 	var id uuid.UUID
 
-	stmt, err := store.Prepare(query)
+	stmt, err := store.PrepareContext(ctx, query)
 	if err != nil {
 		return id, kerror.Newf(kerror.SQLPrepareStatementError, "prepare statement %v: %w", query, err)
 	}
 	defer debugutil.Close(stmt)
 
-	if err := stmt.QueryRow(tournament.Name, tournament.Deposit).Scan(&id); err != nil {
+	if err := stmt.QueryRowContext(ctx, tournament.Name, tournament.Deposit).Scan(&id); err != nil {
 		return id, kerror.Newf(kerror.SQLConstraintError, "insert tournament: %w", err)
 	}
 
 	return id, nil
 }
 
-func (tr *TournamentRepository) SelectByID(store tx.DBTX, id uuid.UUID) (*models.Tournament, error) {
+func (tr *TournamentRepository) SelectByID(ctx context.Context, store tx.DBTX, id uuid.UUID) (*models.Tournament, error) {
 	const query = `
 		SELECT * FROM Tournaments WHERE id = $1
 	`
 	tournament := &models.Tournament{}
 
-	stmt, err := store.Prepare(query)
+	stmt, err := store.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt %v: %v", query, err)
 	}
 	defer debugutil.Close(stmt)
 
-	if err := stmt.QueryRow(id).Scan(&tournament.ID, &tournament.Name, &tournament.Deposit, &tournament.Prize, &tournament.Winner, &tournament.Status); err != nil {
+	if err := stmt.QueryRowContext(ctx, id).Scan(&tournament.ID, &tournament.Name, &tournament.Deposit, &tournament.Prize, &tournament.Winner, &tournament.Status); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, kerror.Newf(kerror.TournamentDoesntExists, "tournament with id(%v) isn't exists: %v", id, err)
 		}
@@ -52,7 +53,7 @@ func (tr *TournamentRepository) SelectByID(store tx.DBTX, id uuid.UUID) (*models
 		return nil, kerror.Newf(kerror.SQLScanError, "scan query: %v", err)
 	}
 
-	users, err := tr.selectUserIDsOfTournament(store, id)
+	users, err := tr.selectUserIDsOfTournament(ctx, store, id)
 	if err != nil {
 		return nil, kerror.Errorf(err, "get users of tournament")
 	}
@@ -62,19 +63,19 @@ func (tr *TournamentRepository) SelectByID(store tx.DBTX, id uuid.UUID) (*models
 
 }
 
-func (tr *TournamentRepository) selectUserIDsOfTournament(store tx.DBTX, tournamentID uuid.UUID) ([]models.User, error) {
+func (tr *TournamentRepository) selectUserIDsOfTournament(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) ([]models.User, error) {
 	const query = `
 		SELECT * FROM UsersOfTournaments WHERE tournamentID = $1;
 	`
 	users := []models.User{}
 
-	stmt, err := store.Prepare(query)
+	stmt, err := store.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare query: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
-	rows, err := stmt.Query(tournamentID)
+	rows, err := stmt.QueryContext(ctx, tournamentID)
 	if err != nil {
 		return nil, kerror.Newf(kerror.SQLConstraintError, "query request: %v", err)
 	}
@@ -93,7 +94,7 @@ func (tr *TournamentRepository) selectUserIDsOfTournament(store tx.DBTX, tournam
 	return users, nil
 }
 
-func (tr *TournamentRepository) SelectRandomUserOfTournament(store tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
+func (tr *TournamentRepository) SelectRandomUserOfTournament(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
 	const query = `
 		WITH random_id AS (
 			SELECT user FROM UsersOfTournaments WHERE tournament = $1
@@ -103,58 +104,58 @@ func (tr *TournamentRepository) SelectRandomUserOfTournament(store tx.DBTX, tour
 	`
 	var user models.User
 
-	stmt, err := store.Prepare(query)
+	stmt, err := store.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
-	if err := stmt.QueryRow(tournamentID).Scan(&user.ID, &user.Name, &user.Balance); err != nil {
+	if err := stmt.QueryRowContext(ctx, tournamentID).Scan(&user.ID, &user.Name, &user.Balance); err != nil {
 		return nil, kerror.Newf(kerror.SQLScanError, "scan user from db: %v", err)
 	}
 
 	return &user, nil
 }
 
-func (tr *TournamentRepository) InsertUserToTournament(store tx.DBTX, tournamentID, userID uuid.UUID) error {
+func (tr *TournamentRepository) InsertUserToTournament(ctx context.Context, store tx.DBTX, tournamentID, userID uuid.UUID) error {
 	const query = `
 		INSERT INTO UsersOfTournaments(tournament, user) VALUES ($1, $2); 
 	`
 
-	stmt, err := store.Prepare(query)
+	stmt, err := store.PrepareContext(ctx, query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare query: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
-	if _, err := stmt.Exec(tournamentID, userID); err != nil {
+	if _, err := stmt.ExecContext(ctx, tournamentID, userID); err != nil {
 		return kerror.Newf(kerror.SQLExecutionError, "exec stmt: %v", err)
 	}
 
 	return nil
 }
 
-func (tr *TournamentRepository) AddToPrize(store tx.DBTX, ID uuid.UUID, d float64) error {
+func (tr *TournamentRepository) AddToPrize(ctx context.Context, store tx.DBTX, ID uuid.UUID, d float64) error {
 	const query = `
 		UPDATE Tournaments
 			SET prize = prize + $1
 			WHERE id = $2
 	`
 
-	stmt, err := store.Prepare(query)
+	stmt, err := store.PrepareContext(ctx, query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
-	if _, err := stmt.Exec(d, ID); err != nil {
+	if _, err := stmt.ExecContext(ctx, d, ID); err != nil {
 		return kerror.Newf(kerror.SQLExecutionError, "exec query: %v", err)
 	}
 
 	return nil
 }
 
-func (tr *TournamentRepository) RefundDepositToUsers(store tx.DBTX, tournamentID uuid.UUID) error {
+func (tr *TournamentRepository) RefundDepositToUsers(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) error {
 	const query = `
 		WITH depositOfTournament AS (
 			SELECT deposit FROM Tournament WHERE id = $1
@@ -164,49 +165,49 @@ func (tr *TournamentRepository) RefundDepositToUsers(store tx.DBTX, tournamentID
 			WHERE id IN (SELECT id FROM UsersOfTournaments WHERE tournament = $1);
 	`
 
-	stmt, err := store.Prepare(query)
+	stmt, err := store.PrepareContext(ctx, query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
-	if _, err := stmt.Exec(tournamentID); err != nil {
+	if _, err := stmt.ExecContext(ctx, tournamentID); err != nil {
 		return kerror.Newf(kerror.SQLExecutionError, "exec query: %v", err)
 	}
 
 	return nil
 }
 
-func (tr *TournamentRepository) SetWinner(store tx.DBTX, tournamentID, winnerID uuid.UUID) error {
+func (tr *TournamentRepository) SetWinner(ctx context.Context, store tx.DBTX, tournamentID, winnerID uuid.UUID) error {
 	const query = `
 		UPDATE Tournament SET winner = $1 WHERE id = $2;
 	`
 
-	stmt, err := store.Prepare(query)
+	stmt, err := store.PrepareContext(ctx, query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
-	if _, err := stmt.Exec(winnerID, tournamentID); err != nil {
+	if _, err := stmt.ExecContext(ctx, winnerID, tournamentID); err != nil {
 		return kerror.Newf(kerror.SQLExecutionError, "exec update query: %v", err)
 	}
 
 	return nil
 }
 
-func (tr *TournamentRepository) UpdateStatus(store tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error {
+func (tr *TournamentRepository) UpdateStatus(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID, newStatus models.TournamentStatus) error {
 	const query = `
 		UPDATE Tournament SET status = $1 WHERE id = $2;
 	`
 
-	stmt, err := store.Prepare(query)
+	stmt, err := store.PrepareContext(ctx, query)
 	if err != nil {
 		return kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
 	}
 	defer debugutil.Close(stmt)
 
-	if _, err := stmt.Exec(newStatus, tournamentID); err != nil {
+	if _, err := stmt.ExecContext(ctx, newStatus, tournamentID); err != nil {
 		return kerror.Newf(kerror.SQLExecutionError, "exec update query: %v", err)
 	}
 

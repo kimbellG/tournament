@@ -16,7 +16,7 @@ func (sc *ServiceHandler) SaveUser(ctx context.Context, user *ttgrpc.User) (*ttg
 		return nil, kerror.Errorf(err, "marshaling user struct to models")
 	}
 
-	id, err := sc.userController.Save(mUser)
+	id, err := sc.userController.Save(ctx, mUser)
 	if err != nil {
 		return nil, kerror.Errorf(err, "save user")
 	}
@@ -47,7 +47,7 @@ func (sc *ServiceHandler) GetUserById(ctx context.Context, r *ttgrpc.UserRequest
 		return nil, kerror.Errorf(err, "marshaling id from request")
 	}
 
-	user, err := sc.userController.GetByID(id)
+	user, err := sc.userController.GetByID(ctx, id)
 	if err != nil {
 		return nil, kerror.Errorf(err, "get user from controller")
 	}
@@ -78,7 +78,7 @@ func (sc *ServiceHandler) DeleteUserByID(ctx context.Context, r *ttgrpc.UserRequ
 		return &emptypb.Empty{}, kerror.Newf(kerror.InvalidID, "marshaling from user request: %w", err)
 	}
 
-	if err := sc.userController.DeleteByID(id); err != nil {
+	if err := sc.userController.DeleteByID(ctx, id); err != nil {
 		return &emptypb.Empty{}, kerror.Errorf(err, "delete user from controller")
 	}
 
@@ -91,7 +91,7 @@ func (sc *ServiceHandler) SumToBalance(ctx context.Context, r *ttgrpc.RequestToU
 		return &emptypb.Empty{}, kerror.Newf(kerror.InvalidID, "parsing id from request: %w", err)
 	}
 
-	if err := sc.userController.SumToBalance(id, r.GetAddend()); err != nil {
+	if err := sc.userController.SumToBalance(ctx, id, r.GetAddend()); err != nil {
 		return &emptypb.Empty{}, kerror.Errorf(err, "controller")
 	}
 

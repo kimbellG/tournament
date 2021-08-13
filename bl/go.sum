@@ -44,10 +44,8 @@ github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/grpc-ecosystem/grpc-gateway v1.16.0/go.mod h1:BDjrQk3hbvj6Nolgz8mAMFbcEtjT1g+wF4CSlocrBnw=
-github.com/kimbellG/kerror v0.0.0-20210809104036-e2020aad6c4b h1:CE5WbgeNoQeGRZh+1y6kZeLyNX8uNjWRBuuKviHm8+M=
-github.com/kimbellG/kerror v0.0.0-20210809104036-e2020aad6c4b/go.mod h1:R51HKUYGkIpICaAhou9uT4ZNSSUtLOH622Zv4ooXeS0=
-github.com/kimbellG/kerror v0.0.0-20210810083856-81ce1e05d388 h1:gBqoeCJmgiobq80PgesYf4f1pdtm7jDiY+fyjpOSn+s=
-github.com/kimbellG/kerror v0.0.0-20210810083856-81ce1e05d388/go.mod h1:R51HKUYGkIpICaAhou9uT4ZNSSUtLOH622Zv4ooXeS0=
+github.com/kimbellG/kerror v0.0.0-20210811133014-2dd55303439a h1:ANc5DcV8iBwp77d62eRkm7Yqo8Zt+kcwXxZiwWKgLiM=
+github.com/kimbellG/kerror v0.0.0-20210811133014-2dd55303439a/go.mod h1:R51HKUYGkIpICaAhou9uT4ZNSSUtLOH622Zv4ooXeS0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=

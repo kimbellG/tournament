@@ -1,11 +1,11 @@
-package usecases
+package controller
 
 import (
 	"github.com/google/uuid"
 	"github.com/kimbellG/tournament-bl/models"
 )
 
-type UserRepository interface {
+type UserUsecase interface {
 	Save(user *models.User) (uuid.UUID, error)
 	GetByID(id uuid.UUID) (*models.User, error)
 	DeleteByID(id uuid.UUID) error

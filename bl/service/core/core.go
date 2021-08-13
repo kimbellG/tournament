@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"database/sql"
@@ -7,15 +7,15 @@ import (
 	"net"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/kimbellG/tournament-bl/controller"
 	"github.com/kimbellG/tournament-bl/handler"
 	pb "github.com/kimbellG/tournament-bl/handler/grpc"
 	"github.com/kimbellG/tournament-bl/repository"
 	"github.com/kimbellG/tournament-bl/tx"
-	"google.golang.org/grpc"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/joho/godotenv"
+	"google.golang.org/grpc"
 )
 
 func init() {
@@ -24,7 +24,7 @@ func init() {
 	}
 }
 
-func main() {
+func StartServer() {
 	listener, err := net.Listen("tcp", os.Getenv("SERVICE_ADDRESS"))
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)

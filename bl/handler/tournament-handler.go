@@ -80,7 +80,7 @@ func (sh *ServiceHandler) JoinTournament(ctx context.Context, r *ttgrpc.JoinRequ
 		return nil, kegrpc.Errorf(err, "controller")
 	}
 
-	return nil, nil
+	return &emptypb.Empty{}, nil
 }
 
 func (sh *ServiceHandler) FinishTournament(ctx context.Context, r *ttgrpc.TournamentRequest) (*emptypb.Empty, error) {
@@ -93,7 +93,7 @@ func (sh *ServiceHandler) FinishTournament(ctx context.Context, r *ttgrpc.Tourna
 		return nil, kegrpc.Errorf(err, "controller")
 	}
 
-	return nil, nil
+	return &emptypb.Empty{}, nil
 }
 
 func (sh *ServiceHandler) CancelTournament(ctx context.Context, r *ttgrpc.TournamentRequest) (*emptypb.Empty, error) {
@@ -106,5 +106,5 @@ func (sh *ServiceHandler) CancelTournament(ctx context.Context, r *ttgrpc.Tourna
 		return nil, kegrpc.Errorf(err, "controller")
 	}
 
-	return nil, nil
+	return &emptypb.Empty{}, nil
 }

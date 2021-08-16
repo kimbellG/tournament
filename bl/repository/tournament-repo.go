@@ -66,7 +66,7 @@ func (tr *TournamentRepository) SelectByID(ctx context.Context, store tx.DBTX, i
 func (tr *TournamentRepository) selectUserIDsOfTournament(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) ([]models.User, error) {
 	const query = `
 		SELECT Users.id, Users.name, Users.balance
-		FROM UsersOfTournaments INNER JOIN Users ON Users.id = UsersOfTournaments.id
+		FROM UsersOfTournaments INNER JOIN Users ON Users.id = UsersOfTournaments.userID
 		WHERE tournamentID = $1;
 	`
 	users := []models.User{}

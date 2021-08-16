@@ -88,7 +88,7 @@ func (u *UserRepository) UpdateBalanceBySum(ctx context.Context, store tx.DBTX, 
 	defer debugutil.Close(updateStmt)
 
 	if _, err := updateStmt.ExecContext(ctx, d, id); err != nil {
-		return kerror.Newf(kerror.SQLExecutionError, "updating balance for %v(addend: %v): %v", id, d, err)
+		return kerror.Newf(kerror.SQLConstraintError, "updating balance for %v(addend: %v): %v", id, d, err)
 	}
 
 	return nil

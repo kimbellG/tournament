@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+        postgres:
+                image: postgres
+                environment: 
+                        - POSTGRES_USER=artyom
+                        - POSTGRES_PASSWORD=5412ib-7
+                        - POSTGRES_DB=artyom
+                ports:
+                        - "8000:5432"
+        migrate:
+                image: migrate/migrate
+                volumes:
+                        - ./database:/migrations
+                command: ["-path", "/migrations", "-database", "postgres://artyom:5412ib-7@postgres:5432/artyom?sslmode=disable", "up"]
+                restart: on-failure
+

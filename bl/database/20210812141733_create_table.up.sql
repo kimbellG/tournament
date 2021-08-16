@@ -1,7 +1,7 @@
  CREATE TABLE IF NOT EXISTS Users (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	name varchar(200) NOT NULL UNIQUE,
-	balance money NOT NULL DEFAULT 0 CHECK(balance > 0.0::money)
+	balance numeric(10, 2) NOT NULL DEFAULT 0 CHECK(balance >= 0.0)
 );
 
 CREATE TYPE TournamentStatus AS ENUM ('Active', 'Cancel', 'Finish');
@@ -9,8 +9,8 @@ CREATE TYPE TournamentStatus AS ENUM ('Active', 'Cancel', 'Finish');
 CREATE TABLE IF NOT EXISTS Tournaments (
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	name varchar(200) NOT NULL,
-	deposit money NOT NULL DEFAULT 0 CHECK(deposit > 0.0::money),
-	prize money NOT NULL DEFAULT 0 CHECK(prize > 0.0::money),
+	deposit numeric(10, 2) NULL DEFAULT 0 CHECK(deposit >= 0.0),
+	prize  numeric(12, 2) NOT NULL DEFAULT 0 CHECK(prize >= 0.0),
 	winner uuid REFERENCES Users(id),
 	status TournamentStatus NOT NULL DEFAULT 'Active'
 );

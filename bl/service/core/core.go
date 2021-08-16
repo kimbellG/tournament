@@ -30,7 +30,7 @@ func StartServer() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	db, err := initDB()
+	db, err := InitDB()
 	if err != nil {
 		log.Fatalf("Failed to initialization database: %v", err)
 	}
@@ -53,7 +53,7 @@ func StartServer() {
 	}
 }
 
-func initDB() (*sql.DB, error) {
+func InitDB() (*sql.DB, error) {
 	connURL := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),

@@ -154,6 +154,10 @@ func (tu *TournamentInteractor) Finish(ctx context.Context, id uuid.UUID) error 
 			return kerror.Errorf(err, "add prize to winner's balance")
 		}
 
+		if err := tu.repo.SetWinner(ctx, store, id, winner.ID); err != nil {
+			return kerror.Errorf(err, "set winner")
+		}
+
 		if err := tu.repo.UpdateStatus(ctx, store, id, models.Finish); err != nil {
 			return kerror.Errorf(err, "change status")
 		}

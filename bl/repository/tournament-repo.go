@@ -99,10 +99,10 @@ func (tr *TournamentRepository) selectUserIDsOfTournament(ctx context.Context, s
 func (tr *TournamentRepository) SelectRandomUserOfTournament(ctx context.Context, store tx.DBTX, tournamentID uuid.UUID) (*models.User, error) {
 	const query = `
 		WITH random_id AS (
-			SELECT user FROM UsersOfTournaments WHERE tournamentID = $1
-				OFFSET random() * COUNT(*) LIMIT 1
+			SELECT userID FROM UsersOfTournaments WHERE tournamentID = $1
+				ORDER BY random() LIMIT 1
 		)
-		SELECT * FROM Users WHERE id = (SELECT id FROM random_id);
+		SELECT * FROM Users WHERE id = (SELECT userID FROM random_id);
 	`
 	var user models.User
 

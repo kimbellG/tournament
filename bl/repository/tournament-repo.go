@@ -164,7 +164,7 @@ func (tr *TournamentRepository) RefundDepositToUsers(ctx context.Context, store 
 		)
 		UPDATE Users
 			SET balance = balance + (SELECT deposit FROM depositOfTournament)
-			WHERE id IN (SELECT id FROM UsersOfTournaments WHERE tournamentID = $1);
+			WHERE id IN (SELECT userID FROM UsersOfTournaments WHERE tournamentID = $1);
 	`
 
 	stmt, err := store.PrepareContext(ctx, query)

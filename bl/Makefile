@@ -1,7 +1,5 @@
 test: compose
-	cd itest && go test -tags integration
-	docker stop bl_postgres_1
-	docker rm bl_postgres_1
+	if cd itest && go test -tags integration -v; then cd ../ && make clean; else cd ../ && make clean; fi
 
 compose:
 	docker-compose up -d

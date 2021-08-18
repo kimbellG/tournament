@@ -1,4 +1,0 @@
-DROP TABLE IF EXISTS Users;
-DROP TYPE IF EXISTS TournamentStatus;
-DROP TABLE IF EXISTS Tournaments;
-DROP TABLE IF EXISTS UsersOfTournaments;;

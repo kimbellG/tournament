@@ -4,18 +4,37 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/kimbellG/tournament/http/internal"
+	"github.com/kimbellG/kerror"
 )
+
+type TournamentCreateRequest struct {
+	Name    string
+	Deposit float64
+}
+
+func (tc *TournamentCreateRequest) Valid() error {
+	if tc.Deposit <= 0 {
+		return kerror.Newf(kerror.BadRequest, "deposit should be more than 0")
+	}
+
+	return nil
+}
 
 type CreateTournamentResponse struct {
 	ID string `json:"id"`
 }
 
 func (h *Handler) CreateTournament(w http.ResponseWriter, r *http.Request) {
-	tournament := &internal.Tournament{}
+	tournament := &TournamentCreateRequest{}
 	if err := json.NewDecoder(r.Body).Decode(tournament); err != nil {
 		http.Error(w, "Failed to decode create's request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := tournament.Valid(); err != nil {
+		http.Error(w, "Failed to validate tournament create request: "+err.Error(), parsing)
 		return
 	}
 
@@ -50,12 +69,26 @@ type JoinRequest struct {
 	UserID string `json:"userId"`
 }
 
+func (j *JoinRequest) Valid() error {
+	_, err := uuid.Parse(j.UserID)
+	if err != nil {
+		return kerror.Newf(kerror.BadRequest, "invalid format of user id: %v", err)
+	}
+
+	return nil
+}
+
 func (h *Handler) JoinTournament(w http.ResponseWriter, r *http.Request) {
 	tournamentID := mux.Vars(r)[idPath]
 	joinRequest := &JoinRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(joinRequest); err != nil {
 		http.Error(w, "Failed to decode join request body:"+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := joinRequest.Valid(); err != nil {
+		http.Error(w, "Failed to validate join request: "+err.Error(), parsing)
 		return
 	}
 

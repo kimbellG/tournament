@@ -6,8 +6,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/kimbellG/kerror"
 	"github.com/kimbellG/tournament/http/internal"
+
+	"github.com/gorilla/mux"
 )
 
 type CreateUserResponse struct {
@@ -28,6 +30,11 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer Close(r.Body)
 
+	if err := user.Valid(); err != nil {
+		http.Error(w, "Failed to validate user request: "+err.Error(), parsing)
+		return
+	}
+
 	id, err := h.tournament.CreateUser(r.Context(), user)
 	if err != nil {
 		http.Error(w, "Failed to create user:"+err.Error(), parsing)
@@ -38,10 +45,6 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode answer in body: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-}
-
-type UserRequest struct {
-	ID string `json:"id"`
 }
 
 func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
@@ -72,12 +75,25 @@ type UpdateBalanceRequest struct {
 	Summand float64 `json:"summand"`
 }
 
+func (u *UpdateBalanceRequest) Valid() error {
+	if u.Summand <= 0 {
+		return kerror.Newf(kerror.BadRequest, "summand to balance should be more than 0")
+	}
+
+	return nil
+}
+
 func (h *Handler) AddToBalance(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)[idPath]
 
 	updateRequest := &UpdateBalanceRequest{}
 	if err := json.NewDecoder(r.Body).Decode(updateRequest); err != nil {
 		http.Error(w, "Failed to decode update request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := updateRequest.Valid(); err != nil {
+		http.Error(w, "Failed to validate add request: "+err.Error(), parsing)
 		return
 	}
 

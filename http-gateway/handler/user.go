@@ -31,13 +31,13 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	defer Close(r.Body)
 
 	if err := user.Valid(); err != nil {
-		http.Error(w, "Failed to validate user request: "+err.Error(), parsing)
+		http.Error(w, "Failed to validate user request: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 
 	id, err := h.tournament.CreateUser(r.Context(), user)
 	if err != nil {
-		http.Error(w, "Failed to create user:"+err.Error(), parsing)
+		http.Error(w, "Failed to create user:"+err.Error(), decodeStatusCode(err))
 		return
 	}
 
@@ -52,7 +52,7 @@ func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.tournament.GetUserByID(r.Context(), id[idPath])
 	if err != nil {
-		http.Error(w, "Failed to get user by id: "+err.Error(), parsing)
+		http.Error(w, "Failed to get user by id: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 
@@ -66,7 +66,7 @@ func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)
 
 	if err := h.tournament.DeleteUser(r.Context(), id[idPath]); err != nil {
-		http.Error(w, "Failed to delete user: "+err.Error(), parsing)
+		http.Error(w, "Failed to delete user: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 }
@@ -93,12 +93,12 @@ func (h *Handler) AddToBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := updateRequest.Valid(); err != nil {
-		http.Error(w, "Failed to validate add request: "+err.Error(), parsing)
+		http.Error(w, "Failed to validate add request: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 
 	if err := h.tournament.UpdateBalanceBySum(r.Context(), id, updateRequest.Summand); err != nil {
-		http.Error(w, "Failed to add points to user balance: "+err.Error(), parsing)
+		http.Error(w, "Failed to add points to user balance: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 }
@@ -113,12 +113,12 @@ func (h *Handler) TakeFromBalance(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := takeRequest.Valid(); err != nil {
-		http.Error(w, "Failed to validate take request: "+err.Error(), parsing)
+		http.Error(w, "Failed to validate take request: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 
 	if err := h.tournament.UpdateBalanceBySum(r.Context(), id, -takeRequest.Summand); err != nil {
-		http.Error(w, "Failed to take points from user balance: "+err.Error(), parsing)
+		http.Error(w, "Failed to take points from user balance: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 }

@@ -34,13 +34,13 @@ func (h *Handler) CreateTournament(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := tournament.Valid(); err != nil {
-		http.Error(w, "Failed to validate tournament create request: "+err.Error(), parsing)
+		http.Error(w, "Failed to validate tournament create request: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 
 	id, err := h.tournament.CreateTournament(r.Context(), tournament.Name, tournament.Deposit)
 	if err != nil {
-		http.Error(w, "Failed to create tournament: "+err.Error(), parsing)
+		http.Error(w, "Failed to create tournament: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 
@@ -55,7 +55,7 @@ func (h *Handler) GetTournamentByID(w http.ResponseWriter, r *http.Request) {
 
 	tournament, err := h.tournament.GetTournamentByID(r.Context(), id)
 	if err != nil {
-		http.Error(w, "Failed to get tournament by id: "+err.Error(), parsing)
+		http.Error(w, "Failed to get tournament by id: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 
@@ -88,12 +88,12 @@ func (h *Handler) JoinTournament(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := joinRequest.Valid(); err != nil {
-		http.Error(w, "Failed to validate join request: "+err.Error(), parsing)
+		http.Error(w, "Failed to validate join request: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 
 	if err := h.tournament.JoinTournament(r.Context(), tournamentID, joinRequest.UserID); err != nil {
-		http.Error(w, "Failed to join user to tournament: "+err.Error(), parsing)
+		http.Error(w, "Failed to join user to tournament: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 }
@@ -102,7 +102,7 @@ func (h *Handler) FinishTournament(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)[idPath]
 
 	if err := h.tournament.FinishTournament(r.Context(), id); err != nil {
-		http.Error(w, "Failed to finish tournament: "+err.Error(), parsing)
+		http.Error(w, "Failed to finish tournament: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 }
@@ -111,7 +111,7 @@ func (h *Handler) CancelTournament(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)[idPath]
 
 	if err := h.tournament.CancelTournament(r.Context(), id); err != nil {
-		http.Error(w, "Failed to cancel tournament: "+err.Error(), parsing)
+		http.Error(w, "Failed to cancel tournament: "+err.Error(), decodeStatusCode(err))
 		return
 	}
 }

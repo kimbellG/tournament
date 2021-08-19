@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"net/http"
-
 	"github.com/kimbellG/tournament/http/controller"
 )
 
@@ -15,6 +13,3 @@ func NewHandler(tournament controller.TournamentController) *Handler {
 		tournament: tournament,
 	}
 }
-
-// TODO: заменить переменную функцией ошибки
-const parsing = http.StatusOK

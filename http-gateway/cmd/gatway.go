@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	service.StartGateWay()
+	service.StartGateway()
 
 }

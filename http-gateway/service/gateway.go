@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func ininConfig() error {
+func initConfig() error {
 	if err := godotenv.Load(); err != nil {
 		return err
 	}
@@ -33,13 +33,12 @@ func StartGateway() {
 	}
 
 	router := mux.NewRouter()
-	cont := controller.NewController(conn)
+	cont := controller.NewTournamentController(conn)
 
-	handler.RegisterUserEndpoints(router.PathPrefix("/user").Subrouter(), cont)
+	handler.RegisterUserEndpoints(router, cont)
 
-	http.Handle("/", router)
 	fmt.Println("Server is listening on %v", os.Getenv("PORT"))
-	if err := http.ListenAndServe(os.Getenv("PORT"), nil); err != nil {
+	if err := http.ListenAndServe(os.Getenv("PORT"), router); err != nil {
 		log.Fatalf("Failed to listen http server: %v", err)
 	}
 }

@@ -36,6 +36,7 @@ func StartGateway() {
 	cont := controller.NewTournamentController(conn)
 
 	handler.RegisterUserEndpoints(router, cont)
+	handler.RegisterTournamentEndpoints(router, cont)
 
 	fmt.Println("Server is listening on %v", os.Getenv("PORT"))
 	if err := http.ListenAndServe(os.Getenv("PORT"), router); err != nil {

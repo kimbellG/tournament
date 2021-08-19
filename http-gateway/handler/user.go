@@ -112,6 +112,11 @@ func (h *Handler) TakeFromBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := takeRequest.Valid(); err != nil {
+		http.Error(w, "Failed to validate take request: "+err.Error(), parsing)
+		return
+	}
+
 	if err := h.tournament.UpdateBalanceBySum(r.Context(), id, -takeRequest.Summand); err != nil {
 		http.Error(w, "Failed to take points from user balance: "+err.Error(), parsing)
 		return

@@ -12,10 +12,7 @@ import (
 )
 
 func (sc *ServiceHandler) SaveUser(ctx context.Context, user *ttgrpc.User) (*ttgrpc.SaveResponse, error) {
-	mUser, err := userFromProto(user)
-	if err != nil {
-		return nil, kegrpc.Errorf(err, "marshaling user struct to models")
-	}
+	mUser := userFromProto(user)
 
 	id, err := sc.userController.Save(ctx, mUser)
 	if err != nil {
@@ -27,19 +24,11 @@ func (sc *ServiceHandler) SaveUser(ctx context.Context, user *ttgrpc.User) (*ttg
 	}, nil
 }
 
-func userFromProto(gUser *ttgrpc.User) (*models.User, error) {
-	mUser := &models.User{
+func userFromProto(gUser *ttgrpc.User) *models.User {
+	return &models.User{
 		Name:    gUser.GetName(),
 		Balance: gUser.GetBalance(),
 	}
-
-	id, err := uuid.Parse(gUser.GetID())
-	if err != nil {
-		return nil, kegrpc.Newf(kerror.InvalidID, "parser id: %v", err)
-	}
-
-	mUser.ID = id
-	return mUser, nil
 }
 
 func (sc *ServiceHandler) GetUserById(ctx context.Context, r *ttgrpc.UserRequest) (*ttgrpc.User, error) {

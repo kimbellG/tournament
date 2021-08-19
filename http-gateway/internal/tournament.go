@@ -13,7 +13,7 @@ type Tournament struct {
 	Name    string           `json:"name"`
 	Deposit float64          `json:"deposit"`
 	Prize   float64          `json:"prize"`
-	Users   []User           `json:"users"`
+	Users   []string         `json:"users"`
 	Winner  string           `json:"winner"`
 	Status  TournamentStatus `json:"status"`
 }

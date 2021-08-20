@@ -14,10 +14,6 @@ import (
 )
 
 func TestGetTournamentByID(t *testing.T) {
-	conn, db := initTest(t)
-	defer conn.Close()
-	defer db.Close()
-
 	client := tgrpc.NewTournamentServiceClient(conn)
 
 	tournament := createTournament(t, db, &models.Tournament{

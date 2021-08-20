@@ -4,6 +4,7 @@ package itest
 
 import (
 	"database/sql"
+	"log"
 	"os"
 	"testing"
 
@@ -18,22 +19,31 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
+var (
+	db   *sql.DB
+	conn *grpc.ClientConn
+)
+
 func TestMain(m *testing.M) {
 	go tournament.StartServer()
+
+	conn, db = initTest()
+	defer db.Close()
+	defer conn.Close()
 
 	code := m.Run()
 	os.Exit(code)
 }
 
-func initTest(t *testing.T) (*grpc.ClientConn, *sql.DB) {
+func initTest() (*grpc.ClientConn, *sql.DB) {
 	db, err := tournament.InitDB()
 	if err != nil {
-		t.Fatalf("Failed to initialize database: %v\n", err)
+		log.Fatalf("Failed to initialize database: %v\n", err)
 	}
 
 	conn, err := grpc.Dial(os.Getenv("SERVICE_ADDRESS"), grpc.WithInsecure())
 	if err != nil {
-		t.Fatalf("Failed to initializate grpc connection: %v\n", err)
+		log.Fatalf("Failed to initializate grpc connection: %v\n", err)
 	}
 
 	return conn, db

@@ -14,10 +14,6 @@ import (
 )
 
 func TestFinishTournament(t *testing.T) {
-	conn, db := initTest(t)
-	defer conn.Close()
-	defer db.Close()
-
 	client := tgrpc.NewTournamentServiceClient(conn)
 
 	activeTournament := createTournament(t, db, &models.Tournament{

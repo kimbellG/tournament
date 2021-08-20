@@ -1,3 +1,14 @@
 protobuf:
     For adding protobuf files input:
         protoc --go_out=. --go-grpc_out=. <filename>
+
+example of config file (.env in binary dir):
+	DB_DRIVER=pgx 
+  	DB_USER=test 
+  	DB_PASSWORD=test 
+  	DB_HOST=localhost 
+  	DB_PORT=8000 
+  	DB_DATABASE=test
+  	SERVICE_ADDRESS=localhost:8080
+	PORT=:8079
+

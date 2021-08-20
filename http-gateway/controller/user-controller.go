@@ -9,7 +9,7 @@ import (
 )
 
 func (t *tournamentInteractor) CreateUser(ctx context.Context, user *internal.User) (string, error) {
-	resp, err := t.tgrpc.SaveUser(ctx, userToGrpc(user))
+	resp, err := t.tgrpc.SaveUser(ctx, userToProto(user))
 	if err != nil {
 		return "", kerror.Errorf(decodeGrpcError(err), "grpc-core")
 	}
@@ -17,7 +17,7 @@ func (t *tournamentInteractor) CreateUser(ctx context.Context, user *internal.Us
 	return resp.GetId(), nil
 }
 
-func userToGrpc(user *internal.User) *pb.User {
+func userToProto(user *internal.User) *pb.User {
 	return &pb.User{
 		ID:      user.ID,
 		Name:    user.Name,
@@ -31,10 +31,10 @@ func (t *tournamentInteractor) GetUserByID(ctx context.Context, id string) (*int
 		return nil, kerror.Errorf(decodeGrpcError(err), "grpc-core")
 	}
 
-	return userFromGrpc(resp), nil
+	return userFromProto(resp), nil
 }
 
-func userFromGrpc(user *pb.User) *internal.User {
+func userFromProto(user *pb.User) *internal.User {
 	return &internal.User{
 		ID:      user.GetID(),
 		Name:    user.GetName(),

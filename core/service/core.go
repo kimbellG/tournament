@@ -1,13 +1,16 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"net"
 	"os"
+	"os/signal"
 
 	"github.com/kimbellG/tournament/core/controller"
+	"github.com/kimbellG/tournament/core/debugutil"
 	"github.com/kimbellG/tournament/core/handler"
 	pb "github.com/kimbellG/tournament/core/handler/grpc"
 	"github.com/kimbellG/tournament/core/repository"
@@ -25,32 +28,18 @@ func init() {
 }
 
 func StartServer() {
-	listener, err := net.Listen("tcp", os.Getenv("SERVICE_ADDRESS"))
-	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
-	}
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
-	db, err := InitDB()
-	if err != nil {
-		log.Fatalf("Failed to initialization database: %v", err)
-	}
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		defer cancel()
 
-	store := tx.NewStore(db)
-	userRepo := &repository.UserRepository{}
-	tournamentRepo := &repository.TournamentRepository{}
+		oscall := <-c
+		log.Printf("system call: %v", oscall)
+	}()
 
-	userController := controller.NewUserController(userRepo, store)
-	tournamentController := controller.NewTournamentController(tournamentRepo, userRepo, store)
-
-	handler := handler.NewServiceHandler(userController, tournamentController)
-
-	var opts []grpc.ServerOption
-	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterTournamentServiceServer(grpcServer, handler)
-
-	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("Failed to serve of grpc server: %v", err)
-	}
+	startServer(ctx)
 }
 
 func InitDB() (*sql.DB, error) {
@@ -72,4 +61,48 @@ func InitDB() (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+func startServer(ctx context.Context) {
+	listener, err := net.Listen("tcp", os.Getenv("SERVICE_ADDRESS"))
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
+	}
+	defer debugutil.Close(listener)
+
+	db, err := InitDB()
+	if err != nil {
+		log.Fatalf("Failed to initialization database: %v", err)
+	}
+	defer debugutil.Close(db)
+
+	handler := startHandler(db)
+
+	var opts []grpc.ServerOption
+	srv := grpc.NewServer(opts...)
+	pb.RegisterTournamentServiceServer(srv, handler)
+
+	go func() {
+		if err := srv.Serve(listener); err != nil {
+			log.Fatalf("Failed to serve of grpc server: %v", err)
+		}
+	}()
+
+	log.Println("Core service started on", os.Getenv("SERVICE_ADDRESS"))
+	<-ctx.Done()
+	log.Println("Core service is starting graceful shutdown")
+
+	srv.GracefulStop()
+	log.Println("Core service stopped")
+}
+
+func startHandler(db *sql.DB) *handler.ServiceHandler {
+	store := tx.NewStore(db)
+	userRepo := &repository.UserRepository{}
+	tournamentRepo := &repository.TournamentRepository{}
+
+	userController := controller.NewUserController(userRepo, store)
+	tournamentController := controller.NewTournamentController(tournamentRepo, userRepo, store)
+
+	return handler.NewServiceHandler(userController, tournamentController)
 }

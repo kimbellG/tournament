@@ -87,4 +87,6 @@ func gracefullShutdown(srv *http.Server, timeout time.Duration) {
 	if err := srv.Shutdown(ctxShutdown); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Gracefull shutdown is failed: %s", err)
 	}
+
+	log.Println("Server closed")
 }

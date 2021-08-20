@@ -42,6 +42,32 @@ func StartServer() {
 	startServer(ctx)
 }
 
+func startServer(ctx context.Context) {
+	listener, err := net.Listen("tcp", os.Getenv("SERVICE_ADDRESS"))
+	if err != nil {
+		log.Fatalf("Failed to listen: %v", err)
+	}
+	defer debugutil.Close(listener)
+
+	db, err := InitDB()
+	if err != nil {
+		log.Fatalf("Failed to initialization database: %v", err)
+	}
+	defer debugutil.Close(db)
+
+	srv := newServer(listener, startHandler(db))
+
+	go func() {
+		if err := srv.Serve(listener); err != nil {
+			log.Fatalf("Failed to serve of grpc server: %v", err)
+		}
+	}()
+
+	log.Println("Core service started on", os.Getenv("SERVICE_ADDRESS"))
+	<-ctx.Done()
+	gracefulShutdown(srv)
+}
+
 func InitDB() (*sql.DB, error) {
 	connURL := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s",
 		os.Getenv("DB_USER"),
@@ -63,39 +89,6 @@ func InitDB() (*sql.DB, error) {
 	return db, nil
 }
 
-func startServer(ctx context.Context) {
-	listener, err := net.Listen("tcp", os.Getenv("SERVICE_ADDRESS"))
-	if err != nil {
-		log.Fatalf("Failed to listen: %v", err)
-	}
-	defer debugutil.Close(listener)
-
-	db, err := InitDB()
-	if err != nil {
-		log.Fatalf("Failed to initialization database: %v", err)
-	}
-	defer debugutil.Close(db)
-
-	handler := startHandler(db)
-
-	var opts []grpc.ServerOption
-	srv := grpc.NewServer(opts...)
-	pb.RegisterTournamentServiceServer(srv, handler)
-
-	go func() {
-		if err := srv.Serve(listener); err != nil {
-			log.Fatalf("Failed to serve of grpc server: %v", err)
-		}
-	}()
-
-	log.Println("Core service started on", os.Getenv("SERVICE_ADDRESS"))
-	<-ctx.Done()
-	log.Println("Core service is starting graceful shutdown")
-
-	srv.GracefulStop()
-	log.Println("Core service stopped")
-}
-
 func startHandler(db *sql.DB) *handler.ServiceHandler {
 	store := tx.NewStore(db)
 	userRepo := &repository.UserRepository{}
@@ -105,4 +98,20 @@ func startHandler(db *sql.DB) *handler.ServiceHandler {
 	tournamentController := controller.NewTournamentController(tournamentRepo, userRepo, store)
 
 	return handler.NewServiceHandler(userController, tournamentController)
+}
+
+func newServer(listener net.Listener, handler *handler.ServiceHandler) *grpc.Server {
+	var opts []grpc.ServerOption
+	srv := grpc.NewServer(opts...)
+	pb.RegisterTournamentServiceServer(srv, handler)
+
+	return srv
+}
+
+func gracefulShutdown(srv *grpc.Server) {
+	log.Println("Core service is starting graceful shutdown")
+
+	srv.GracefulStop()
+	log.Println("Core service stopped")
+
 }

@@ -26,6 +26,7 @@ var keToGrpcDict = map[kerror.StatusCode]codes.Code{
 	kerror.SQLTransactionBeginError:    codes.Aborted,
 	kerror.SQLTransactionRoolbackError: codes.Aborted,
 	kerror.SQLTransactionCommitError:   codes.Aborted,
+	kerror.Unknown:                     codes.Unknown,
 }
 
 func Newf(code kerror.StatusCode, format string, args ...interface{}) error {
@@ -61,5 +62,10 @@ func Errorf(err error, format string, args ...interface{}) error {
 }
 
 func MarshalStatusCode(code kerror.StatusCode) codes.Code {
-	return keToGrpcDict[code]
+	grpcCode, ok := keToGrpcDict[code]
+	if !ok {
+		return codes.Unknown
+	}
+
+	return grpcCode
 }

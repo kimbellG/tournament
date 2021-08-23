@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kimbellG/kerror"
-	"github.com/kimbellG/kerror/kegrpc"
 	ttgrpc "github.com/kimbellG/tournament/core/handler/grpc"
+	"github.com/kimbellG/tournament/core/handler/kegrpc"
 	"github.com/kimbellG/tournament/core/models"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

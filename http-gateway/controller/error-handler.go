@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"errors"
+
 	"github.com/kimbellG/kerror"
+	"github.com/kimbellG/tournament/core/handler/kegrpc/errorpb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,7 +24,24 @@ func decodeGrpcError(err error) error {
 		return kerror.New(err, kerror.Unknown)
 	}
 
+	for _, d := range gerr.Details() {
+		switch info := d.(type) {
+		case errorpb.ErrorHandler:
+			return getError(info)
+		default:
+		}
+	}
+
 	return kerror.New(gerr.Err(), UnmarshalStatusCode(gerr.Code()))
+}
+
+func getError(err errorpb.ErrorHandler) error {
+	switch e := err.Error.(type) {
+	case *errorpb.ErrorHandler_Kerror:
+		return kerror.New(errors.New(e.Kerror.GetMsg()), kerror.StatusCode(e.Kerror.GetCode()))
+	default:
+		return kerror.New(errors.New("unexcepted error"), kerror.Unknown)
+	}
 }
 
 func UnmarshalStatusCode(code codes.Code) kerror.StatusCode {

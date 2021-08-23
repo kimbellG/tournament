@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func UnaryInterceptor(
+func LogInterceptor(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -26,10 +26,20 @@ func UnaryInterceptor(
 	resp, err := handler(ctx, req)
 	if err != nil {
 		kerror.ErrorLog(entryLog, err, fmt.Sprintf("%v failed", info.FullMethod))
-		err = kegrpc.Errorf(err, info.FullMethod)
 	}
 
 	entryLog.WithField("response", resp).Info("request has been processed")
 
 	return resp, err
+}
+
+func ErrorInterceptor(next grpc.UnaryServerInterceptor) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		resp, err := next(ctx, req, info, handler)
+		if err != nil {
+			err = kegrpc.Errorf(err, info.FullMethod)
+		}
+
+		return resp, err
+	}
 }

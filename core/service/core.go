@@ -59,7 +59,7 @@ func StartServer() {
 	handler := handler.NewServiceHandler(userController, tournamentController)
 
 	opts := []grpc.ServerOption{
-		grpc.UnaryInterceptor(infrastructure.UnaryInterceptor),
+		grpc.UnaryInterceptor(infrastructure.ErrorInterceptor(infrastructure.LogInterceptor)),
 	}
 
 	grpcServer := grpc.NewServer(opts...)

@@ -12,6 +12,7 @@ import (
 	pb "github.com/kimbellG/tournament/core/handler/grpc"
 	"github.com/kimbellG/tournament/core/repository"
 	"github.com/kimbellG/tournament/core/tx"
+	"github.com/sirupsen/logrus"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/joho/godotenv"
@@ -22,6 +23,18 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Failed to load config file: %v", err)
 	}
+
+	lvl, ok := os.LookupEnv("LOG_LEVEL")
+	if !ok {
+		lvl = "debug"
+	}
+
+	ll, err := logrus.ParseLevel(lvl)
+	if err != nil {
+		ll = logrus.DebugLevel
+	}
+
+	logrus.SetLevel(ll)
 }
 
 func StartServer() {

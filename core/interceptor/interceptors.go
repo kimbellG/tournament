@@ -1,4 +1,4 @@
-package infrastructure
+package interceptor
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func LogInterceptor(
+func Log(
 	ctx context.Context,
 	req interface{},
 	info *grpc.UnaryServerInfo,
@@ -33,7 +33,7 @@ func LogInterceptor(
 	return resp, err
 }
 
-func ErrorInterceptor(next grpc.UnaryServerInterceptor) grpc.UnaryServerInterceptor {
+func Error(next grpc.UnaryServerInterceptor) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		resp, err := next(ctx, req, info, handler)
 		if err != nil {

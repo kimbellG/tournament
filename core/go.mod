@@ -2,8 +2,6 @@ module github.com/kimbellG/tournament/core
 
 go 1.16
 
-replace github.com/kimbellG/kerror => ../../tournament-error
-
 require (
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.13.0

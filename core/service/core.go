@@ -10,7 +10,7 @@ import (
 	"github.com/kimbellG/tournament/core/controller"
 	"github.com/kimbellG/tournament/core/handler"
 	pb "github.com/kimbellG/tournament/core/handler/grpc"
-	"github.com/kimbellG/tournament/core/infrastructure"
+	"github.com/kimbellG/tournament/core/interceptor"
 	"github.com/kimbellG/tournament/core/repository"
 	"github.com/kimbellG/tournament/core/tx"
 	"github.com/sirupsen/logrus"
@@ -59,7 +59,7 @@ func StartServer() {
 	handler := handler.NewServiceHandler(userController, tournamentController)
 
 	opts := []grpc.ServerOption{
-		grpc.UnaryInterceptor(infrastructure.ErrorInterceptor(infrastructure.LogInterceptor)),
+		grpc.UnaryInterceptor(interceptor.Error(interceptor.Log)),
 	}
 
 	grpcServer := grpc.NewServer(opts...)

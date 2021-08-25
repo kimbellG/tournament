@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/kimbellG/kerror"
@@ -29,7 +30,7 @@ var httpCodeDict = map[kerror.StatusCode]int{
 }
 
 func decodeStatusCode(err error) int {
-	if terr := (kerror.Error{}); error.As(err, &terr) {
+	if terr := (kerror.Error{}); errors.As(err, &terr) {
 		if httpCode, ok := httpCodeDict[terr.StatusCode()]; ok {
 			return httpCode
 		}

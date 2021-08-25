@@ -23,10 +23,10 @@ func (t *tournamentInteractor) GetTournamentByID(ctx context.Context, id string)
 		return nil, kerror.Errorf(decodeGrpcError(err), "grpc-core")
 	}
 
-	return tournamentFromGrpc(tournament), nil
+	return tournamentFromProto(tournament), nil
 }
 
-func tournamentFromGrpc(tournament *pb.Tournament) *internal.Tournament {
+func tournamentFromProto(tournament *pb.Tournament) *internal.Tournament {
 	return &internal.Tournament{
 		ID:      tournament.GetId(),
 		Name:    tournament.GetName(),

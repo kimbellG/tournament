@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var grpcToKe = map[codes.Code]kerror.StatusCode{
+var grpcToErrorCode = map[codes.Code]kerror.StatusCode{
 	codes.InvalidArgument:    kerror.BadRequest,
 	codes.NotFound:           kerror.NotFound,
 	codes.FailedPrecondition: kerror.SQLConstraintError,
@@ -25,7 +25,7 @@ func decodeGrpcError(err error) error {
 }
 
 func UnmarshalStatusCode(code codes.Code) kerror.StatusCode {
-	kcode, ok := grpcToKe[code]
+	kcode, ok := grpcToErrorCode[code]
 	if ok {
 		return kcode
 	}

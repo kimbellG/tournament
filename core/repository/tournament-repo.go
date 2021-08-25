@@ -112,7 +112,7 @@ func (tr *TournamentRepository) SelectRandomUserOfTournament(ctx context.Context
 	}
 	defer debugutil.Close(stmt)
 
-	if err := stmt.QueryRowContext(ctx, tournamentID).Scan(&user.ID, &user.Name, &user.Balance); err != nil {
+	if err := stmt.QueryRowContext(ctx, tournamentID).Scan(&user.ID, &user.Name, &user.Balance, &user.Password); err != nil {
 		return nil, kerror.Newf(kerror.SQLScanError, "scan user from db: %v", err)
 	}
 

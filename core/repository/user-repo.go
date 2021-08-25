@@ -15,7 +15,7 @@ type UserRepository struct{}
 
 func (u *UserRepository) Insert(ctx context.Context, store tx.DBTX, user *models.User) (uuid.UUID, error) {
 	const query = `
-		INSERT INTO Users(name, balance) VALUES ($1, $2)
+		INSERT INTO Users(name, balance, password) VALUES ($1, $2, $3)
 			RETURNING id;
 	`
 	var id uuid.UUID
@@ -26,7 +26,7 @@ func (u *UserRepository) Insert(ctx context.Context, store tx.DBTX, user *models
 	}
 	defer debugutil.Close(inStmt)
 
-	if err := inStmt.QueryRowContext(ctx, user.Name, user.Balance).Scan(&id); err != nil {
+	if err := inStmt.QueryRowContext(ctx, user.Name, user.Balance, user.Password).Scan(&id); err != nil {
 		return id, kerror.Newf(kerror.SQLConstraintError, "scan: %v", err)
 	}
 
@@ -45,7 +45,7 @@ func (u *UserRepository) SelectByID(ctx context.Context, store tx.DBTX, id uuid.
 	}
 	defer debugutil.Close(selectStmt)
 
-	if err := selectStmt.QueryRowContext(ctx, id).Scan(&user.ID, &user.Name, &user.Balance); err != nil {
+	if err := selectStmt.QueryRowContext(ctx, id).Scan(&user.ID, &user.Name, &user.Balance, &user.Password); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, kerror.Newf(kerror.UserDoesntExists, "no user with id %v: %v", id, err)
 		}

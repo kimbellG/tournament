@@ -1,5 +1,7 @@
 package internal
 
+import "github.com/kimbellG/kerror"
+
 type TournamentStatus string
 
 const (
@@ -16,4 +18,16 @@ type Tournament struct {
 	Users   []User           `json:"users"`
 	Winner  string           `json:"winner"`
 	Status  TournamentStatus `json:"status"`
+}
+
+func (t *Tournament) Valid() error {
+	if t.Deposit <= 0 {
+		return kerror.Newf(kerror.BadRequest, "deposit should be more than 0")
+	}
+
+	if t.Prize < 0 {
+		return kerror.Newf(kerror.BadRequest, "prize should be positive")
+	}
+
+	return nil
 }

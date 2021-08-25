@@ -62,7 +62,9 @@ func createTournament(t *testing.T, db *sql.DB, tournament *models.Tournament) *
 }
 
 func createUser(t *testing.T, db *sql.DB, user *models.User) *models.User {
-	if err := db.QueryRow("INSERT INTO Users(name, balance) VALUES ($1, $2) RETURNING id", user.Name, user.Balance).Scan(&user.ID); err != nil {
+	user.Password = "testpassword"
+	if err := db.QueryRow("INSERT INTO Users(name, balance, password) VALUES ($1, $2, $3) RETURNING id",
+		user.Name, user.Balance, user.Password).Scan(&user.ID); err != nil {
 		t.Fatalf("Failed insert user in database(%v): %v", user.Name, err)
 	}
 

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package errorpb;
+
+option go_package = "/errorpb";
+
+message Kerror {
+	int64 code = 1;
+	string msg = 2;	
+}
+
+message ErrorHandler {
+	oneof error {
+		Kerror kerror = 1;
+	}
+}
+
+

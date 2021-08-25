@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/kimbellG/kerror"
-	"github.com/kimbellG/kerror/kegrpc"
 	ttgrpc "github.com/kimbellG/tournament/core/handler/grpc"
 	"github.com/kimbellG/tournament/core/models"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -14,7 +13,7 @@ import (
 func (sh *ServiceHandler) CreateTournament(ctx context.Context, r *ttgrpc.CreateTournamentRequest) (*ttgrpc.CreateTournamentResponse, error) {
 	id, err := sh.tournamentController.Create(ctx, tournamentFromProto(r))
 	if err != nil {
-		return &ttgrpc.CreateTournamentResponse{}, kegrpc.Errorf(err, "controller")
+		return &ttgrpc.CreateTournamentResponse{}, kerror.Errorf(err, "controller")
 	}
 
 	return &ttgrpc.CreateTournamentResponse{
@@ -32,16 +31,15 @@ func tournamentFromProto(protoTournament *ttgrpc.CreateTournamentRequest) *model
 func (sh *ServiceHandler) GetTournamentByID(ctx context.Context, r *ttgrpc.TournamentRequest) (*ttgrpc.Tournament, error) {
 	id, err := uuid.Parse(r.GetId())
 	if err != nil {
-		return nil, kegrpc.Newf(kerror.InvalidID, "parsing tournament id: %w", err)
+		return nil, kerror.Newf(kerror.InvalidID, "parsing tournament id: %w", err)
 	}
 
 	tournament, err := sh.tournamentController.GetByID(ctx, id)
 	if err != nil {
-		return nil, kegrpc.Errorf(err, "controller")
+		return nil, kerror.Errorf(err, "controller")
 	}
 
 	return tournamentToProto(tournament), nil
-
 }
 
 func tournamentToProto(tournament *models.Tournament) *ttgrpc.Tournament {
@@ -68,16 +66,16 @@ func uuidOfUsersToStringSlice(users []models.User) []string {
 func (sh *ServiceHandler) JoinTournament(ctx context.Context, r *ttgrpc.JoinRequest) (*emptypb.Empty, error) {
 	tournament, err := uuid.Parse(r.GetTournamentID())
 	if err != nil {
-		return nil, kegrpc.Newf(kerror.InvalidID, "parsing tournament id: %w", err)
+		return nil, kerror.Newf(kerror.InvalidID, "parsing tournament id: %w", err)
 	}
 
 	user, err := uuid.Parse(r.GetUserID())
 	if err != nil {
-		return nil, kegrpc.Newf(kerror.InvalidID, "parsing user id: %w", err)
+		return nil, kerror.Newf(kerror.InvalidID, "parsing user id: %w", err)
 	}
 
 	if err := sh.tournamentController.Join(ctx, tournament, user); err != nil {
-		return nil, kegrpc.Errorf(err, "controller")
+		return nil, kerror.Errorf(err, "controller")
 	}
 
 	return &emptypb.Empty{}, nil
@@ -86,11 +84,11 @@ func (sh *ServiceHandler) JoinTournament(ctx context.Context, r *ttgrpc.JoinRequ
 func (sh *ServiceHandler) FinishTournament(ctx context.Context, r *ttgrpc.TournamentRequest) (*emptypb.Empty, error) {
 	id, err := uuid.Parse(r.GetId())
 	if err != nil {
-		return nil, kegrpc.Newf(kerror.InvalidID, "parsing tournament id: %w", err)
+		return nil, kerror.Newf(kerror.InvalidID, "parsing tournament id: %w", err)
 	}
 
 	if err := sh.tournamentController.Finish(ctx, id); err != nil {
-		return nil, kegrpc.Errorf(err, "controller")
+		return nil, kerror.Errorf(err, "controller")
 	}
 
 	return &emptypb.Empty{}, nil
@@ -99,11 +97,11 @@ func (sh *ServiceHandler) FinishTournament(ctx context.Context, r *ttgrpc.Tourna
 func (sh *ServiceHandler) CancelTournament(ctx context.Context, r *ttgrpc.TournamentRequest) (*emptypb.Empty, error) {
 	id, err := uuid.Parse(r.GetId())
 	if err != nil {
-		return nil, kegrpc.Newf(kerror.InvalidID, "parsing tournament id: %w", err)
+		return nil, kerror.Newf(kerror.InvalidID, "parsing tournament id: %w", err)
 	}
 
 	if err := sh.tournamentController.Cancel(ctx, id); err != nil {
-		return nil, kegrpc.Errorf(err, "controller")
+		return nil, kerror.Errorf(err, "controller")
 	}
 
 	return &emptypb.Empty{}, nil

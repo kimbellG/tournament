@@ -1,5 +1,6 @@
 test: compose
-	if cd itest && go test -tags integration -v; then make -f ../Makefile clean; else make -f ../Makefile clean; fi
+	cd itest && go test -tags integration
+	make clean
 
 compose:
 	docker-compose up -d

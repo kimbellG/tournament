@@ -21,13 +21,23 @@ func NewUserController(repo UserRepository, store tx.Store) UserController {
 	}
 }
 
-func (ui *UserInteractor) Save(ctx context.Context, user *models.User) (uuid.UUID, error) {
-	var id uuid.UUID
+func (ui *UserInteractor) Save(ctx context.Context, user *models.User) (*models.User, error) {
+	created := &models.User{
+		Name:     user.Name,
+		Password: generatePassword(),
+		Balance:  user.Balance,
+	}
 
-	err := ui.store.WithTransaction(func(store tx.DBTX) error {
+	hash, err := hashPassword(created.Password)
+	if err != nil {
+		return nil, kerror.Newf(kerror.InternalServerError, "hashing password: %v", err)
+	}
+	user.Password = hash
+
+	err = ui.store.WithTransaction(func(store tx.DBTX) error {
 		var err error
 
-		id, err = ui.UserRepo.Insert(ctx, store, user)
+		created.ID, err = ui.UserRepo.Insert(ctx, store, user)
 		if err != nil {
 			return kerror.Errorf(err, "repository")
 		}
@@ -35,10 +45,10 @@ func (ui *UserInteractor) Save(ctx context.Context, user *models.User) (uuid.UUI
 		return nil
 	})
 	if err != nil {
-		return id, kerror.Errorf(err, "execution transactive")
+		return nil, kerror.Errorf(err, "execution transactive")
 	}
 
-	return id, nil
+	return created, nil
 }
 
 func (ui *UserInteractor) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {

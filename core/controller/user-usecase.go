@@ -8,7 +8,7 @@ import (
 )
 
 type UserController interface {
-	Save(ctx context.Context, user *models.User) (uuid.UUID, error)
+	Save(ctx context.Context, user *models.User) (*models.User, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*models.User, error)
 	DeleteByID(ctx context.Context, id uuid.UUID) error
 	UpdateBalance(ctx context.Context, id uuid.UUID, addend float64) error

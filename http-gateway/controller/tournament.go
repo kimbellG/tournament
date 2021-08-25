@@ -11,7 +11,7 @@ import (
 func (t *tournamentInteractor) CreateTournament(ctx context.Context, name string, deposit float64) (string, error) {
 	resp, err := t.tgrpc.CreateTournament(ctx, &pb.CreateTournamentRequest{Name: name, Deposit: deposit})
 	if err != nil {
-		return "", kerror.Errorf(decodeErrorFromGrpc(err), "grcp-core")
+		return "", kerror.Errorf(err, "grcp-core")
 	}
 
 	return resp.GetId(), nil
@@ -20,7 +20,7 @@ func (t *tournamentInteractor) CreateTournament(ctx context.Context, name string
 func (t *tournamentInteractor) GetTournamentByID(ctx context.Context, id string) (*internal.Tournament, error) {
 	tournament, err := t.tgrpc.GetTournamentByID(ctx, &pb.TournamentRequest{Id: id})
 	if err != nil {
-		return nil, kerror.Errorf(decodeErrorFromGrpc(err), "grpc-core")
+		return nil, kerror.Errorf(err, "grpc-core")
 	}
 
 	return tournamentFromProto(tournament), nil
@@ -39,7 +39,7 @@ func tournamentFromProto(tournament *pb.Tournament) *internal.Tournament {
 
 func (t *tournamentInteractor) JoinTournament(ctx context.Context, tournamentID, userID string) error {
 	if _, err := t.tgrpc.JoinTournament(ctx, &pb.JoinRequest{TournamentID: tournamentID, UserID: userID}); err != nil {
-		return kerror.Errorf(decodeErrorFromGrpc(err), "grpc-core")
+		return kerror.Errorf(err, "grpc-core")
 	}
 
 	return nil
@@ -47,7 +47,7 @@ func (t *tournamentInteractor) JoinTournament(ctx context.Context, tournamentID,
 
 func (t *tournamentInteractor) FinishTournament(ctx context.Context, tournamentID string) error {
 	if _, err := t.tgrpc.FinishTournament(ctx, &pb.TournamentRequest{Id: tournamentID}); err != nil {
-		return kerror.Errorf(decodeErrorFromGrpc(err), "grpc-core")
+		return kerror.Errorf(err, "grpc-core")
 	}
 
 	return nil
@@ -55,7 +55,7 @@ func (t *tournamentInteractor) FinishTournament(ctx context.Context, tournamentI
 
 func (t *tournamentInteractor) CancelTournament(ctx context.Context, tournamentID string) error {
 	if _, err := t.tgrpc.CancelTournament(ctx, &pb.TournamentRequest{Id: tournamentID}); err != nil {
-		return kerror.Errorf(decodeErrorFromGrpc(err), "grpc-core")
+		return kerror.Errorf(err, "grpc-core")
 	}
 
 	return nil

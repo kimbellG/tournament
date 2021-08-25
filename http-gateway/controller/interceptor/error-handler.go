@@ -1,6 +1,11 @@
-package controller
+package interceptor
 
 import (
+	"errors"
+	"log"
+
+	"github.com/kimbellG/tournament/core/handler/kegrpc/errorpb"
+
 	"github.com/kimbellG/kerror"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,7 +20,7 @@ var grpcToErrorCode = map[codes.Code]kerror.StatusCode{
 	codes.Unknown:            kerror.Unknown,
 }
 
-func decodeErrorFromGrpc(err error) error {
+func DecodeErrorFromGrpc(err error) error {
 	gerr, ok := status.FromError(err)
 	if !ok {
 		return kerror.New(err, kerror.Unknown)
@@ -23,16 +28,17 @@ func decodeErrorFromGrpc(err error) error {
 
 	for _, d := range gerr.Details() {
 		switch info := d.(type) {
-		case errorpb.ErrorHandler:
+		case *errorpb.ErrorHandler:
 			return errorFromProto(info)
 		default:
+			log.Printf("Unkwonw detail: %T", info)
 		}
 	}
 
-	return kerror.New(gerr.Err(), UnmarshalStatusCode(gerr.Code()))
+	return kerror.New(gerr.Err(), unmarshalStatusCode(gerr.Code()))
 }
 
-func errorFromProto(err errorpb.ErrorHandler) error {
+func errorFromProto(err *errorpb.ErrorHandler) error {
 	switch e := err.Error.(type) {
 	case *errorpb.ErrorHandler_Kerror:
 		return kerror.New(errors.New(e.Kerror.GetMsg()), kerror.StatusCode(e.Kerror.GetCode()))
@@ -41,7 +47,7 @@ func errorFromProto(err errorpb.ErrorHandler) error {
 	}
 }
 
-func UnmarshalStatusCode(code codes.Code) kerror.StatusCode {
+func unmarshalStatusCode(code codes.Code) kerror.StatusCode {
 	kcode, ok := grpcToErrorCode[code]
 	if ok {
 		return kcode

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/kimbellG/tournament/http/controller"
+	"github.com/kimbellG/tournament/http/controller/interceptor"
 	"github.com/kimbellG/tournament/http/handler"
 
 	"github.com/joho/godotenv"
@@ -46,7 +47,8 @@ func startGateway(ctx context.Context) {
 		log.Fatalf("Failed to init config file: %v", err)
 	}
 
-	conn, err := grpc.Dial(os.Getenv("SERVICE_ADDRESS"), grpc.WithInsecure())
+	conn, err := grpc.Dial(os.Getenv("SERVICE_ADDRESS"), grpc.WithInsecure(),
+		grpc.WithUnaryInterceptor(interceptor.Error))
 	if err != nil {
 		log.Fatalf("Failed to connect with core service: %v", err)
 	}

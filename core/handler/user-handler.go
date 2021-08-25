@@ -13,13 +13,14 @@ import (
 func (sc *ServiceHandler) SaveUser(ctx context.Context, user *ttgrpc.User) (*ttgrpc.SaveResponse, error) {
 	mUser := userFromProto(user)
 
-	id, err := sc.userController.Save(ctx, mUser)
+	created, err := sc.userController.Save(ctx, mUser)
 	if err != nil {
 		return nil, kerror.Errorf(err, "save user")
 	}
 
 	return &ttgrpc.SaveResponse{
-		Id: id.String(),
+		Id:       created.ID.String(),
+		Password: created.Password,
 	}, nil
 }
 

@@ -2,7 +2,10 @@ module github.com/kimbellG/tournament/core
 
 go 1.16
 
+replace github.com/kimbellG/kerror => ../../tournament-error
+
 require (
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/joho/godotenv v1.3.0

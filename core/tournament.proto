@@ -8,9 +8,10 @@ option go_package = "/handler/grpc";
 
 service TournamentService {
 	rpc SaveUser(User) returns (SaveResponse) {}
-	rpc GetUserById(UserRequest) returns (User) {}
+	rpc GetUserByID(UserRequest) returns (User) {}
 	rpc DeleteUserByID(UserRequest) returns (google.protobuf.Empty) {}
 	rpc SumToBalance(RequestToUpdateBalance) returns (google.protobuf.Empty) {}
+	rpc UserAuthorization(AuthorizationRequest) returns (AuthorizationResponse) {}
 
 	rpc CreateTournament(CreateTournamentRequest) returns (CreateTournamentResponse) {} 
 	rpc GetTournamentByID(TournamentRequest) returns (Tournament) {} 
@@ -37,6 +38,15 @@ message UserRequest {
 message RequestToUpdateBalance {
     string ID = 1;
     double addend = 2;
+}
+
+message AuthorizationRequest {
+	string username = 1;
+	string password = 2;
+}
+
+message AuthorizationResponse {
+	string id = 1;
 }
 
 message CreateTournamentRequest {

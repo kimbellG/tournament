@@ -75,9 +75,17 @@ func startGateway(ctx context.Context) {
 func startRouter(conn *grpc.ClientConn) *mux.Router {
 	router := mux.NewRouter()
 	cont := controller.NewTournamentController(conn)
+	authmid := handler.AuthenticationMiddleware{
+		TokenPassword: os.Getenv("TK_PASSWORD"),
+		NotAuthPaths: []string{
+			"/" + handler.UserPath,
+			"/" + handler.LogInPath,
+		},
+	}
 
 	handler.RegisterUserEndpoints(router, cont)
 	handler.RegisterTournamentEndpoints(router, cont)
+	router.Use(authmid.Middleware)
 
 	return router
 }

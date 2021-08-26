@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -51,6 +53,12 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type GetUserResponse struct {
+	ID      string  `json:"id"`
+	Name    string  `json:"name"`
+	Balance float64 `json:"balance"`
+}
+
 func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)
 
@@ -60,7 +68,13 @@ func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(user); err != nil {
+	resp := &GetUserResponse{
+		ID:      user.ID,
+		Name:    user.Name,
+		Balance: user.Balance,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, "Failed to encode user in body: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -149,7 +163,7 @@ func (h *Handler) UserLogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.tournament.LogIn(r.Context(), rBody.Login, rBody.Password)
+	id, err := h.tournament.LogIn(r.Context(), rBody.Login, passwordHash(rBody.Password))
 	if err != nil {
 		http.Error(w, "Failed to user log in: "+err.Error(), decodeStatusCode(err))
 		return
@@ -168,6 +182,10 @@ func (h *Handler) UserLogIn(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func passwordHash(password string) string {
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
+}
+
 func createToken(id string) (string, error) {
 	claims := &LogClaims{
 		id,
@@ -177,7 +195,7 @@ func createToken(id string) (string, error) {
 	}
 
 	tk := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tkString, err := tk.SignedString(os.Getenv("PASSWORD_FOR_TOKEN"))
+	tkString, err := tk.SignedString([]byte(os.Getenv("TK_PASSWORD")))
 	if err != nil {
 		return "", kerror.Newf(kerror.InternalServerError, "create string from token struct: %v", err)
 	}

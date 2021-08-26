@@ -88,7 +88,7 @@ func (sc *ServiceHandler) SumToBalance(ctx context.Context, r *ttgrpc.RequestToU
 	return &emptypb.Empty{}, nil
 }
 
-func (sc *ServiceHandler) Authorization(ctx context.Context, r *ttgrpc.AuthorizationRequest) (*ttgrpc.AuthorizationResponse, error) {
+func (sc *ServiceHandler) UserAuthorization(ctx context.Context, r *ttgrpc.AuthorizationRequest) (*ttgrpc.AuthorizationResponse, error) {
 	user, err := sc.userController.Authorization(ctx, r.Username, r.Password)
 	if err != nil {
 		return &ttgrpc.AuthorizationResponse{}, kerror.Errorf(err, "controller")

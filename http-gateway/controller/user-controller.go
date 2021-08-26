@@ -8,13 +8,15 @@ import (
 	"github.com/kimbellG/tournament/http/internal"
 )
 
-func (t *tournamentInteractor) CreateUser(ctx context.Context, user *internal.User) (string, error) {
+func (t *tournamentInteractor) CreateUser(ctx context.Context, user *internal.User) (*internal.User, error) {
 	resp, err := t.tgrpc.SaveUser(ctx, userToProto(user))
 	if err != nil {
-		return "", kerror.Errorf(err, "grpc-core")
+		return nil, kerror.Errorf(err, "grpc-core")
 	}
+	user.ID = resp.GetId()
+	user.Password = resp.GetPassword()
 
-	return resp.GetId(), nil
+	return user, nil
 }
 
 func userToProto(user *internal.User) *pb.User {
@@ -26,7 +28,7 @@ func userToProto(user *internal.User) *pb.User {
 }
 
 func (t *tournamentInteractor) GetUserByID(ctx context.Context, id string) (*internal.User, error) {
-	resp, err := t.tgrpc.GetUserById(ctx, &pb.UserRequest{ID: id})
+	resp, err := t.tgrpc.GetUserByID(ctx, &pb.UserRequest{ID: id})
 	if err != nil {
 		return nil, kerror.Errorf(err, "grpc-core")
 	}
@@ -56,4 +58,13 @@ func (t *tournamentInteractor) UpdateBalanceBySum(ctx context.Context, id string
 	}
 
 	return nil
+}
+
+func (t *tournamentInteractor) LogIn(ctx context.Context, login, password string) (string, error) {
+	resp, err := t.tgrpc.UserAuthorization(ctx, &pb.AuthorizationRequest{Username: login, Password: password})
+	if err != nil {
+		return "", kerror.Errorf(err, "grpc request to core service")
+	}
+
+	return resp.GetId(), nil
 }

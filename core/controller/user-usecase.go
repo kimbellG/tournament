@@ -12,4 +12,5 @@ type UserController interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*models.User, error)
 	DeleteByID(ctx context.Context, id uuid.UUID) error
 	UpdateBalance(ctx context.Context, id uuid.UUID, addend float64) error
+	Authorization(ctx context.Context, username, password string) (*models.User, error)
 }

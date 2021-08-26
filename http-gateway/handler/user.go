@@ -5,7 +5,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/kimbellG/kerror"
 	"github.com/kimbellG/tournament/http/internal"
 
@@ -13,7 +16,8 @@ import (
 )
 
 type CreateUserResponse struct {
-	ID string `json:"id"`
+	ID       string `json:"id"`
+	Password string `json:"password"`
 }
 
 func Close(cl io.Closer) {
@@ -35,13 +39,13 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.tournament.CreateUser(r.Context(), user)
+	created, err := h.tournament.CreateUser(r.Context(), user)
 	if err != nil {
 		http.Error(w, "Failed to create user:"+err.Error(), decodeStatusCode(err))
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(CreateUserResponse{id}); err != nil {
+	if err := json.NewEncoder(w).Encode(CreateUserResponse{ID: created.ID, Password: created.Password}); err != nil {
 		http.Error(w, "Failed to encode answer in body: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -50,7 +54,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)
 
-	user, err := h.tournament.GetUserByID(r.Context(), id[idPath])
+	user, err := h.tournament.GetUserByID(r.Context(), id[IDPath])
 	if err != nil {
 		http.Error(w, "Failed to get user by id: "+err.Error(), decodeStatusCode(err))
 		return
@@ -65,7 +69,7 @@ func (h *Handler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)
 
-	if err := h.tournament.DeleteUser(r.Context(), id[idPath]); err != nil {
+	if err := h.tournament.DeleteUser(r.Context(), id[IDPath]); err != nil {
 		http.Error(w, "Failed to delete user: "+err.Error(), decodeStatusCode(err))
 		return
 	}
@@ -84,7 +88,7 @@ func (u *UpdateBalanceRequest) Valid() error {
 }
 
 func (h *Handler) AddToBalance(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)[idPath]
+	id := mux.Vars(r)[IDPath]
 
 	updateRequest := &UpdateBalanceRequest{}
 	if err := json.NewDecoder(r.Body).Decode(updateRequest); err != nil {
@@ -104,7 +108,7 @@ func (h *Handler) AddToBalance(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) TakeFromBalance(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)[idPath]
+	id := mux.Vars(r)[IDPath]
 
 	takeRequest := &UpdateBalanceRequest{}
 	if err := json.NewDecoder(r.Body).Decode(takeRequest); err != nil {
@@ -121,4 +125,63 @@ func (h *Handler) TakeFromBalance(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to take points from user balance: "+err.Error(), decodeStatusCode(err))
 		return
 	}
+}
+
+type LogInRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+type LogInResponse struct {
+	Token string `json:"token"`
+}
+
+type LogClaims struct {
+	ID string
+	jwt.StandardClaims
+}
+
+func (h *Handler) UserLogIn(w http.ResponseWriter, r *http.Request) {
+	rBody := &LogInRequest{}
+
+	if err := json.NewDecoder(r.Body).Decode(rBody); err != nil {
+		http.Error(w, "Failed to decode log in request: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.tournament.LogIn(r.Context(), rBody.Login, rBody.Password)
+	if err != nil {
+		http.Error(w, "Failed to user log in: "+err.Error(), decodeStatusCode(err))
+		return
+	}
+
+	tk, err := createToken(id)
+	if err != nil {
+		http.Error(w, "Failed to create token: "+err.Error(), decodeStatusCode(err))
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(&LogInResponse{Token: tk}); err != nil {
+		http.Error(w, "Failed to encode reponse: ", http.StatusInternalServerError)
+		return
+	}
+
+}
+
+func createToken(id string) (string, error) {
+	claims := &LogClaims{
+		id,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour).Unix(),
+		},
+	}
+
+	tk := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tkString, err := tk.SignedString(os.Getenv("PASSWORD_FOR_TOKEN"))
+	if err != nil {
+		return "", kerror.Newf(kerror.InternalServerError, "create string from token struct: %v", err)
+	}
+
+	return tkString, nil
+
 }

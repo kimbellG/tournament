@@ -51,7 +51,7 @@ func (h *Handler) CreateTournament(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetTournamentByID(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)[idPath]
+	id := mux.Vars(r)[IDPath]
 
 	tournament, err := h.tournament.GetTournamentByID(r.Context(), id)
 	if err != nil {
@@ -79,7 +79,7 @@ func (j *JoinRequest) Valid() error {
 }
 
 func (h *Handler) JoinTournament(w http.ResponseWriter, r *http.Request) {
-	tournamentID := mux.Vars(r)[idPath]
+	tournamentID := mux.Vars(r)[IDPath]
 	joinRequest := &JoinRequest{}
 
 	if err := json.NewDecoder(r.Body).Decode(joinRequest); err != nil {
@@ -99,7 +99,7 @@ func (h *Handler) JoinTournament(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) FinishTournament(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)[idPath]
+	id := mux.Vars(r)[IDPath]
 
 	if err := h.tournament.FinishTournament(r.Context(), id); err != nil {
 		http.Error(w, "Failed to finish tournament: "+err.Error(), decodeStatusCode(err))
@@ -108,7 +108,7 @@ func (h *Handler) FinishTournament(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CancelTournament(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)[idPath]
+	id := mux.Vars(r)[IDPath]
 
 	if err := h.tournament.CancelTournament(r.Context(), id); err != nil {
 		http.Error(w, "Failed to cancel tournament: "+err.Error(), decodeStatusCode(err))

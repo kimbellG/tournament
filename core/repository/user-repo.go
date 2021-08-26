@@ -56,6 +56,27 @@ func (u *UserRepository) SelectByID(ctx context.Context, store tx.DBTX, id uuid.
 	return user, nil
 }
 
+func (u *UserRepository) SelectByName(ctx context.Context, store tx.DBTX, username string) (*models.User, error) {
+	const query = "SELECT id, name, balance, password FROM Users WHERE name = $1"
+	user := &models.User{}
+
+	selectStmt, err := store.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, kerror.Newf(kerror.SQLPrepareStatementError, "prepare stmt: %v", err)
+	}
+	defer debugutil.Close(selectStmt)
+
+	if err := selectStmt.QueryRowContext(ctx, username).Scan(&user.ID, &user.Name, &user.Balance, &user.Password); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, kerror.Newf(kerror.UserDoesntExists, "no user with username %v: %v", username, err)
+		}
+
+		return nil, kerror.Newf(kerror.SQLScanError, "query: %v", err)
+	}
+
+	return user, nil
+}
+
 func (u *UserRepository) DeleteByID(ctx context.Context, store tx.DBTX, id uuid.UUID) error {
 	const query = `
 		DELETE FROM Users WHERE id = $1;	

@@ -13,13 +13,14 @@ import (
 func (sc *ServiceHandler) SaveUser(ctx context.Context, user *ttgrpc.User) (*ttgrpc.SaveResponse, error) {
 	mUser := userFromProto(user)
 
-	id, err := sc.userController.Save(ctx, mUser)
+	created, err := sc.userController.Save(ctx, mUser)
 	if err != nil {
 		return nil, kerror.Errorf(err, "save user")
 	}
 
 	return &ttgrpc.SaveResponse{
-		Id: id.String(),
+		Id:       created.ID.String(),
+		Password: created.Password,
 	}, nil
 }
 
@@ -30,7 +31,7 @@ func userFromProto(gUser *ttgrpc.User) *models.User {
 	}
 }
 
-func (sc *ServiceHandler) GetUserById(ctx context.Context, r *ttgrpc.UserRequest) (*ttgrpc.User, error) {
+func (sc *ServiceHandler) GetUserByID(ctx context.Context, r *ttgrpc.UserRequest) (*ttgrpc.User, error) {
 	id, err := userIDFromProto(r)
 	if err != nil {
 		return nil, kerror.Errorf(err, "marshaling id from request")
@@ -85,4 +86,15 @@ func (sc *ServiceHandler) SumToBalance(ctx context.Context, r *ttgrpc.RequestToU
 	}
 
 	return &emptypb.Empty{}, nil
+}
+
+func (sc *ServiceHandler) UserAuthorization(ctx context.Context, r *ttgrpc.AuthorizationRequest) (*ttgrpc.AuthorizationResponse, error) {
+	user, err := sc.userController.Authorization(ctx, r.Username, r.Password)
+	if err != nil {
+		return &ttgrpc.AuthorizationResponse{}, kerror.Errorf(err, "controller")
+	}
+
+	return &ttgrpc.AuthorizationResponse{
+		Id: user.ID.String(),
+	}, nil
 }

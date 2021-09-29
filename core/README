@@ -15,4 +15,5 @@ example of config file (.env in binary dir):
   	DB_DATABASE=test
   	SERVICE_ADDRESS=localhost:8080
 	PORT=:8079
+	TK_PASSWORD=password-for-token-validation
 

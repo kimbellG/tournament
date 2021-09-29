@@ -54,7 +54,7 @@ func TestFinishTournament(t *testing.T) {
 		code       codes.Code
 	}{
 		{
-			name:       "Active touranment",
+			name:       "Active tournament",
 			tournament: activeTournament,
 			users:      users,
 			code:       codes.OK,

@@ -11,7 +11,9 @@ var httpCodeDict = map[kerror.StatusCode]int{
 	kerror.BadRequest:          http.StatusBadRequest,
 	kerror.InternalServerError: http.StatusBadRequest,
 	kerror.InvalidID:           http.StatusBadRequest,
-	kerror.NotFound:            http.StatusNotFound,
+	kerror.IncorrectPassword:   http.StatusBadRequest,
+
+	kerror.NotFound: http.StatusNotFound,
 
 	kerror.SQLConstraintError: http.StatusBadRequest,
 
@@ -27,6 +29,7 @@ var httpCodeDict = map[kerror.StatusCode]int{
 
 	kerror.TournamentDoesntExists: http.StatusNotFound,
 	kerror.UserDoesntExists:       http.StatusNotFound,
+	kerror.Unknown:                http.StatusBadRequest,
 }
 
 func decodeStatusCode(err error) int {

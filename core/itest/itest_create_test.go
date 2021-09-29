@@ -22,10 +22,19 @@ func TestCreateTournament(t *testing.T) {
 		errCode codes.Code
 	}{
 		{
-			"successful tournament", tgrpc.CreateTournamentRequest{Name: "artyom tournament", Deposit: 1000}, codes.OK,
+			"successful tournament", tgrpc.CreateTournamentRequest{
+				Name:    "artyom tournament",
+				Deposit: 1000,
+			},
+			codes.OK,
 		},
 		{
-			"negative deposit", tgrpc.CreateTournamentRequest{Name: "failed tournament", Deposit: -100}, codes.FailedPrecondition,
+			"negative deposit",
+			tgrpc.CreateTournamentRequest{
+				Name:    "failed tournament",
+				Deposit: -100,
+			},
+			codes.FailedPrecondition,
 		},
 	}
 

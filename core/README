@@ -1,0 +1,19 @@
+protobuf:
+    For adding protobuf files input:
+        protoc --go_out=. --go-grpc_out=. <filename>
+    For adding tournament protobuf:
+        protoc --go_out=. --go-grpc_out=. tournament.proto
+    For adding error protobug:
+	protoc --go_out=./handler/kegrpc/ --go-grpc_out=./handler/kegrpc/ handler/kegrpc/error.proto 
+
+example of config file (.env in binary dir):
+	DB_DRIVER=pgx 
+  	DB_USER=test 
+  	DB_PASSWORD=test 
+  	DB_HOST=localhost 
+  	DB_PORT=8000 
+  	DB_DATABASE=test
+  	SERVICE_ADDRESS=localhost:8080
+	PORT=:8079
+	TK_PASSWORD=password-for-token-validation
+
